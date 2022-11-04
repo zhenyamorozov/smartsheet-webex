@@ -29,6 +29,7 @@ This automation supports:
 - Customizable webinar parameters
 - Attendee link, host key and registrant count updated into Smartsheet
 
+
 How it works
 ------------
 
@@ -48,6 +49,7 @@ Contribute
 ----------
 
 Feel free to fork and improve.
+
 
 Support
 -------

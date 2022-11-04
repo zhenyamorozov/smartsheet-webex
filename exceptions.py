@@ -1,3 +1,5 @@
+# These exceptions may be raised at different stages of the scheduling proces
+
 
 class ParameterStoreError(Exception):
     """Custom exception raised when there is a problem with Parameter Store"""
