@@ -53,10 +53,3 @@ Support
 -------
 
 This automation is offered as-is.
-
-License
--------
-
-The project is licensed under the BSD license.
-
-.. _Get started: docs/get_started.rst
