@@ -104,7 +104,7 @@ def saveWebexIntegrationTokens(tokens):
     Returns:
         None
     """
-    tokens["created"] = time.time()
+    tokens['created'] = time.time()
     ssm_client = boto3.client("ssm")
     ssmStoredParameter = ssm_client.put_parameter(
         Name = "/daedalus/webexTokens",

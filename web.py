@@ -19,26 +19,26 @@ logger.setLevel(logging.DEBUG)
 load_dotenv(override=True)
 
 # load env vars for Flask
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev")
+FLASK_SECRET_KEY = os.getenv('FLASK_SECRET_KEY', "dev")
 if FLASK_SECRET_KEY=="dev": 
     logger.debug("  Flask secret key is not set in env. Set to any random string with FLASK_SECRET_KEY environment variable.")
 
 # load env vars for Webex integration
-WEBEX_INTEGRATION_CLIENT_ID = os.getenv("WEBEX_INTEGRATION_CLIENT_ID")
+WEBEX_INTEGRATION_CLIENT_ID = os.getenv('WEBEX_INTEGRATION_CLIENT_ID')
 if not WEBEX_INTEGRATION_CLIENT_ID: 
     logger.fatal("  Webex Integration Client ID is missing. Provide with WEBEX_INTEGRATION_CLIENT_ID environment variable.")
     raise SystemExit()
-WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv("WEBEX_INTEGRATION_CLIENT_SECRET")
+WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv('WEBEX_INTEGRATION_CLIENT_SECRET')
 if not WEBEX_INTEGRATION_CLIENT_SECRET: 
     logger.fatal("  Webex Integration Client ID is missing. Provide with WEBEX_INTEGRATION_CLIENT_SECRET environment variable.")
     raise SystemExit()
 
 # load env vars for Webex bot
-WEBEX_BOT_TOKEN = os.getenv("WEBEX_BOT_TOKEN")
+WEBEX_BOT_TOKEN = os.getenv('WEBEX_BOT_TOKEN')
 if not WEBEX_BOT_TOKEN: 
     logger.fatal("  Webex bot access token is missing. Provide with WEBEX_BOT_TOKEN environment variable.")
     raise SystemExit()
-WEBEX_BOT_ROOM_ID = os.getenv("WEBEX_BOT_ROOM_ID")
+WEBEX_BOT_ROOM_ID = os.getenv('WEBEX_BOT_ROOM_ID')
 if not WEBEX_BOT_ROOM_ID: 
     logger.fatal("  Webex bot room ID is missing. Provide with WEBEX_BOT_ROOM_ID environment variable.")
     raise SystemExit()

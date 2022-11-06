@@ -42,23 +42,23 @@ def loadParameters():
 
     # load required parameters from env
     logger.info("Loading required parameters from env.")
-    SMARTSHEET_ACCESS_TOKEN = os.getenv("SMARTSHEET_ACCESS_TOKEN")
+    SMARTSHEET_ACCESS_TOKEN = os.getenv('SMARTSHEET_ACCESS_TOKEN')
     if not SMARTSHEET_ACCESS_TOKEN:
         logger.fatal("Smartsheet access token is missing. Provide with SMARTSHEET_ACCESS_TOKEN environment variable.")
         raise SystemExit()
-    WEBEX_INTEGRATION_CLIENT_ID = os.getenv("WEBEX_INTEGRATION_CLIENT_ID")
+    WEBEX_INTEGRATION_CLIENT_ID = os.getenv('WEBEX_INTEGRATION_CLIENT_ID')
     if not WEBEX_INTEGRATION_CLIENT_ID: 
         logger.fatal("Webex Integration Client ID is missing. Provide with WEBEX_INTEGRATION_CLIENT_ID environment variable.")
         raise SystemExit()
-    WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv("WEBEX_INTEGRATION_CLIENT_SECRET")
+    WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv('WEBEX_INTEGRATION_CLIENT_SECRET')
     if not WEBEX_INTEGRATION_CLIENT_SECRET: 
         logger.fatal("Webex Integration Client Secret is missing. Provide with WEBEX_INTEGRATION_CLIENT_SECRET environment variable.")
         raise SystemExit()
-    WEBEX_BOT_TOKEN = os.getenv("WEBEX_BOT_TOKEN")
+    WEBEX_BOT_TOKEN = os.getenv('WEBEX_BOT_TOKEN')
     if not WEBEX_BOT_TOKEN:
         logger.fatal("Webex Bot access token is missing. Provide with WEBEX_BOT_TOKEN environment variable.")
         raise SystemExit()
-    WEBEX_BOT_ROOM_ID = os.getenv("WEBEX_BOT_ROOM_ID")
+    WEBEX_BOT_ROOM_ID = os.getenv('WEBEX_BOT_ROOM_ID')
     if not WEBEX_BOT_ROOM_ID: 
         logger.fatal("Webex Bot room ID is missing. It is required for logging and control. Provide with WEBEX_BOT_ROOM_ID environment variable.")
         raise SystemExit()
@@ -70,28 +70,29 @@ def loadParameters():
         'create': "Create",
         'startdate': "Start Date",
         'starttime': "Start Time",
+        'duration': "Duration",
         'title': "Title",
-        'description': "Description",
+        'agenda': "Agenda",
         'cohosts': "Cohosts",
         'panelists': "Panelists",
         'webinarId': "Webinar ID",
         'attendeeUrl': "Attendee URL",
         'hostKey': "Host Key",
-        'registrantCount': "Registration Count"
+        'registrantCount': "Registrant Count"
 
     }
     SMARTSHEET_PARAMS['nicknames'] = {}
     if  os.getenv("SMARTSHEET_PARAMS"):
         logger.info("Loading optional Smartsheet parameters from env.")
         try:
-            columns = json.loads(os.getenv("SMARTSHEET_PARAMS"))["columns"]
+            columns = json.loads(os.getenv('SMARTSHEET_PARAMS'))['columns']
             for i in columns:
-                SMARTSHEET_PARAMS["columns"][i] = columns[i]
+                SMARTSHEET_PARAMS['columns'][i] = columns[i]
             logger.info("Optional Smartsheet column parameters are loaded from env.")
         except:
             logger.error("Could not load optional Smartsheet column parameters.")
         try:
-            SMARTSHEET_PARAMS["nicknames"] = json.loads(os.getenv("SMARTSHEET_PARAMS"))["nicknames"]
+            SMARTSHEET_PARAMS['nicknames'] = json.loads(os.getenv('SMARTSHEET_PARAMS'))['nicknames']
             logger.info("Optional Smartsheet nickname parameters are loaded from env.")
         except:
             logger.error("Could not load optional Smartsheet nickname parameters.")
@@ -100,10 +101,10 @@ def loadParameters():
         logger.info("No optional Smartsheet parameters set in env.")
 
     WEBEX_INTEGRATION_PARAMS = {}
-    if  os.getenv("WEBEX_INTEGRATION_PARAMS"):
+    if  os.getenv('WEBEX_INTEGRATION_PARAMS'):
         logger.info("Loading optional Webex Integration parameters from env.")
         try:
-            WEBEX_INTEGRATION_PARAMS = json.loads(os.getenv("WEBEX_INTEGRATION_PARAMS"))
+            WEBEX_INTEGRATION_PARAMS = json.loads(os.getenv('WEBEX_INTEGRATION_PARAMS'))
             logger.info("Optional Webex Integration parameters are loaded from env.")
         except Exception as ex:
             logger.error("Could not load optional Webex Integration parameters. "+str(ex))
@@ -367,7 +368,7 @@ if __name__ == "__main__":
 
             event['title'] = getWebinarProperty('title', ssRow) or "Generic Webinar Title"
             try:
-                event['description'] = getWebinarProperty('description', ssRow)
+                event['agenda'] = getWebinarProperty('agenda', ssRow)
                 event['scheduledType'] = getWebinarProperty('scheduledType', ssRow) or 'webinar'
                 event['startdatetime'] = datetime.strptime(
                     ssRow.get_column(ssColumnMap['startdate']).value 
@@ -412,7 +413,7 @@ if __name__ == "__main__":
                 try:
                     w = webexApi.meetings.create(
                         title = event['title'],
-                        description = event['description'],
+                        agenda = event['agenda'],
                         scheduledType=event['scheduledType'],
                         start = str(event["startdatetime"]),
                         end = str(event["enddatetime"]),
@@ -478,7 +479,7 @@ if __name__ == "__main__":
                     w = webexApi.meetings.update(
                         meetingId = event['id'],
                         title = event['title'],
-                        description = event['description'],
+                        agenda = event['agenda'],
                         scheduledType=event['scheduledType'],
                         start = str(event["startdatetime"]),
                         end = str(event["enddatetime"]),

@@ -6,6 +6,7 @@ from param_store import *
 
 import os
 import urllib.parse
+from datetime import datetime
 
 #import webexteamssdk
 
@@ -33,7 +34,8 @@ logger.debug("Creating webhooks in Webex")
 
 # delete ALL current webhooks - this bot is supposed to be used only with one instance of the app
 for wh in botApi.webhooks.list():
-    botApi.webhooks.delete(wh.id)
+    pass
+    # TODO prod: botApi.webhooks.delete(wh.id)
 
 # create new webhooks
 try:
@@ -42,7 +44,7 @@ try:
         targetUrl = webhookTargetUrl, 
         resource = "attachmentActions", 
         event = "created",
-        filter="roomId="+WEBEX_BOT_ROOM_ID
+        filter="roomId=" + WEBEX_BOT_ROOM_ID
     )
 except:
     pass
@@ -52,14 +54,14 @@ try:
         targetUrl = webhookTargetUrl, 
         resource = "messages", 
         event = "created",
-        filter="roomId="+WEBEX_BOT_ROOM_ID
+        filter="roomId=" + WEBEX_BOT_ROOM_ID
     )
 except:
     pass
 
 
 
-@app.route('/webhook', methods = ['GET', 'POST'])
+@app.route("/webhook", methods = ['GET', 'POST'])
 def webhook():
     print ("Webhook arrived.")
     # print(request)
@@ -94,10 +96,10 @@ def webhook():
 
         ], 
         actions=[
-            Submit(title="Schedule now", data={'act': 'schedule now'}),
-            Submit(title="Set Smartsheet", data={'act': 'set smartsheet'}),
-            Submit(title="Authorize Webex", data={'act': 'authorize webex'}),
-            Submit(title="?", data={'act': 'help'}),
+            Submit(title="Schedule now", data={'act': "schedule now"}),
+            Submit(title="Set Smartsheet", data={'act': "set smartsheet"}),
+            Submit(title="Authorize Webex", data={'act': "authorize webex"}),
+            Submit(title="?", data={'act': "help"}),
         ]
     )
 
@@ -106,7 +108,7 @@ def webhook():
     if webhookJson['data']['personId'] == me.id:
         return "Webhook processed."
 
-    # receibed a text message
+    # received a text message
     if webhookJson['resource'] == "messages":
         # retrieve the new message details
         # message = botApi.messages.get(webhookJson['data']['id'])
@@ -190,11 +192,11 @@ def webhook():
                                 Text('newSmartsheetId', placeholder="New Smartsheet ID", isMultiline=False), 
                             ],
                             actions= [
-                                Submit(title="OK", data={'act': 'save smartsheet id'}),
+                                Submit(title="OK", data={'act': "save smartsheet id"}),
                             ]
                         )
                     ),
-                    Submit(title="Create Template", data={'act': 'create smartsheet template'})
+                    Submit(title="Create Template", data={'act': "create smartsheet template"})
                     
                 ]
             )
@@ -224,7 +226,7 @@ def webhook():
                     # if sheet URL is provided, use the last part of the path
                     elif newSheetId.startswith("http"):
                         newSheetId = urllib.parse.urlparse(newSheetId).path.split('/')[-1]
-                    # else try to use the ID as-is
+                    # else try to use the provided ID as-is
                     else:
                         pass
                     
@@ -262,29 +264,119 @@ def webhook():
         # "Create Smartsheet Template" action
         if action.type == "submit" and action.inputs['act'] == "create smartsheet template":
             # print(action)
+
+            # dev
+            # ssApi = smartsheet.Smartsheet()
+            # ssApi.errors_as_exceptions(True)
+            # sh = ssApi.Sheets.get_sheet(4997590048630660, level=2)
+            # sh_dict = sh.to_dict()
+
+            # /dev
+
+
             try:
                 ssApi = smartsheet.Smartsheet()
-                sheet_spec = smartsheet.models.Sheet({
-                    'name': "Template",
-                    'columns': [{
-                        'primary': True,
-                        'title': "Create",
-                        'type': smartsheet.models.enums.column_type.PICKLIST,
-                        'options': ["yes", "no"]
-                        }, {
-                        'title': 'Start Date',
-                        'type': smartsheet.models.enums.column_type.DATE
-                        }, {
-                        'title': 'Start Time',
-                        'type': smartsheet.models.enums.column_type.DATETIME # change to DATETIME in template??
+                ssApi.errors_as_exceptions(True)
+                sheetSpec = smartsheet.models.Sheet({
+                    'name': "Template "+datetime.utcnow().strftime("%Y%m%d-%H%M%S"),
+                    'columns': [
+                        {
+                            'title': "Create",
+                            'type': smartsheet.models.enums.column_type.ColumnType.PICKLIST,
+                            'options': ["yes", "no"],
+                            'description': "To check out a webinar for creation, change this value to 'yes'. Required field."
+                        }, 
+                        {
+                            'title': "Start Date",
+                            'type': smartsheet.models.enums.column_type.ColumnType.DATE,
+                            'description': "You can change the date format in Profile icon - Personal Seetings - Settings - Regional Preferences. Required field."
+                        }, 
+                        {
+                            'title': "Start Time",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "24-hour clock HH:MM format. Required field."
+                        },
+                        {
+                            'title': "Duration",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "If not specified, the standard duration is used."
+                        },
+                        {
+                            'title': "Title",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "128 characters maximum. Required field."
+                        },
+                        {
+                            'title': "Agenda",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "1300 characters maximum."
+                        },
+                        {
+                            'title': "Cohosts",
+                            'type': smartsheet.models.enums.column_type.ColumnType.MULTI_CONTACT_LIST,
+                            'description': "Multiple contacts may be selected."
+                        },
+                        {
+                            'title': "Panelists",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "Comma-separated list of 'name <email>'. Nicknames can be used."
+                        },
+                        {
+                            'primary': True,
+                            'title': "Webinar ID",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "Automatically populated and used for the automation. Required field."
+
+                        },
+                        {
+                            'title': "Attendee URL",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "Automatically populated. This is the Join URL, NOT the Registration URL."
+                        },
+                        {
+                            'title': "Host Key",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "Automatically populated."
+                        },
+                        {
+                            'title': "Registrant Count",
+                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'description': "Automatically populated."
                         }
+
                     ]
                 })
-                new_sheet = ssApi.Home.create_sheet(sheet_spec)
+                newSheet = ssApi.Home.create_sheet(sheetSpec).result
+                # additional settings for columns which can't be set at sheet creation (no idea why)
+                for col in newSheet.columns:
+                    if col.title == "Create":
+                        col_id = col.id_
+                        col.id_ = col.version = None
+                        col.validation = True
+                        col.format = ",,,,1,,,,,18,,,,,," # Smartsheet formatting is sorcery
+                        ssApi.Sheets.update_column(newSheet.id_, col_id, col)
+                    if col.title == "Start Date":
+                        col_id = col.id_
+                        col.id_ = col.version = None
+                        col.validation = True
+                        ssApi.Sheets.update_column(newSheet.id_, col_id, col)
+                    if col.title in ( "Webinar ID", "Attendee URL", "Host Key", "Registrant Count" ) :
+                        col_id = col.id_
+                        col.id_ = col.version = col.validation = col.primary = None
+                        col.locked = True
+                        col.format = ",,,,1,,,,,18,,,,,,"
+                        ssApi.Sheets.update_column(newSheet.id_, col_id, col)
+
+                botApi.messages.create(
+                    text = "Here is your newly created Smartsheet template. Don't forget to set it as the current working template.\n{}".format(newSheet.permalink), 
+                    roomId=WEBEX_BOT_ROOM_ID
+                )
 
             except Exception as ex: 
-                print(ex)
-            pass
+                botApi.messages.create(
+                    text = "Couldn't create a Smartsheet template.", 
+                    roomId=WEBEX_BOT_ROOM_ID
+                )
 
 
 

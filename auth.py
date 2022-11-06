@@ -41,11 +41,11 @@ def auth():
     # session['oauth_state'] = state
     # session.modified = True
 
-    oa_params = {"response_type":"code",
-              "client_id": WEBEX_INTEGRATION_CLIENT_ID,
-              "redirect_uri": oa_callbackUri,
-              "scope":"meeting:schedules_read meeting:schedules_write spark:all meeting:preferences_read meeting:recordings_read meeting:participants_read",
-              "state": state
+    oa_params = {'response_type':"code",
+              'client_id': WEBEX_INTEGRATION_CLIENT_ID,
+              'redirect_uri': oa_callbackUri,
+              'scope':"meeting:schedules_read meeting:schedules_write spark:all meeting:preferences_read meeting:recordings_read meeting:participants_read",
+              'state': state
               }
     oa_authorizationFullURI = oa_authorizationURI+urllib.parse.urlencode(oa_params)
     # print(oa_authorizationFullURI)
@@ -66,11 +66,11 @@ def callback():
     """
     print("OAuth callback start")
     
-    oa_error = request.args.get('error', '')
+    oa_error = request.args.get("error", '')
     if oa_error:
         return "Error: " + oa_error
 
-    oa_code = request.args.get('code')
+    oa_code = request.args.get("code")
     if not oa_code:
         return "Authorization failed. Authorization provider did not return authorization code."
 
@@ -81,11 +81,11 @@ def callback():
     #     return "Authorization failed. State does not match."
 
     oa_data={
-        "grant_type": "authorization_code",
-        "redirect_uri": oa_callbackUri,
-        "code": oa_code,
-        "client_id": WEBEX_INTEGRATION_CLIENT_ID,
-        "client_secret": WEBEX_INTEGRATION_CLIENT_SECRET
+        'grant_type': "authorization_code",
+        'redirect_uri': oa_callbackUri,
+        'code': oa_code,
+        'client_id': WEBEX_INTEGRATION_CLIENT_ID,
+        'client_secret': WEBEX_INTEGRATION_CLIENT_SECRET
     }
 
     oa_resp = requests.post(oa_tokenURI, data=oa_data)
