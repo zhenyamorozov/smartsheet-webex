@@ -80,7 +80,7 @@ def callback():
     # if oa_state != session['oauth_state']:
     #     return "Authorization failed. State does not match."
 
-    oa_data={
+    oa_data = {
         'grant_type': "authorization_code",
         'redirect_uri': oa_callbackUri,
         'code': oa_code,

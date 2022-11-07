@@ -44,6 +44,7 @@ if not WEBEX_BOT_ROOM_ID:
     raise SystemExit()
 
 # Get the public app URL
+webAppPublicUrl = ""
 # try to get the ngrok URL (dev)
 try:
     r = requests.get("http://localhost:4040/api/tunnels")

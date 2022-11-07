@@ -318,7 +318,7 @@ def webhook():
                         },
                         {
                             'title': "Panelists",
-                            'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
+                            'type': smartsheet.models.enums.column_type.ColumnType.MULTI_CONTACT_LIST,
                             'description': "Comma-separated list of 'name <email>'. Nicknames can be used."
                         },
                         {

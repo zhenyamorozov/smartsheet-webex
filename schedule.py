@@ -1,3 +1,8 @@
+"""
+This implements the Webex Webinar scheduling process.
+Can be launched as a standalone script or invoked by the control bot command.
+"""
+
 # common imports
 import os
 from dotenv import load_dotenv
@@ -258,7 +263,7 @@ def stringContactsToDict(contacts):
 
     """
     _res = {}
-    for contact in getaddresses(contacts.split(",")):
+    for contact in getaddresses(str(contacts).split(",")):
         if "@" in contact[1]:
             # email specified
             _res[contact[1].strip().lower()] = contact[0].strip() or "Panelist"
