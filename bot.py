@@ -299,7 +299,7 @@ def webhook():
                         {
                             'title': "Duration",
                             'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
-                            'description': "If not specified, the standard duration is used."
+                            'description': "In minutes. If not specified, the standard duration is used."
                         },
                         {
                             'title': "Title",
@@ -353,7 +353,7 @@ def webhook():
                         col_id = col.id_
                         col.id_ = col.version = None
                         col.validation = True
-                        col.format = ",,,,1,,,,,18,,,,,," # Smartsheet formatting is sorcery
+                        col.format = ",,,,,,,,,18,,,,,," # Smartsheet formatting is sorcery
                         ssApi.Sheets.update_column(newSheet.id_, col_id, col)
                     if col.title == "Start Date":
                         col_id = col.id_
@@ -364,7 +364,7 @@ def webhook():
                         col_id = col.id_
                         col.id_ = col.version = col.validation = col.primary = None
                         col.locked = True
-                        col.format = ",,,,1,,,,,18,,,,,,"
+                        col.format = ",,,,,,,,,18,,,,,,"
                         ssApi.Sheets.update_column(newSheet.id_, col_id, col)
 
                 botApi.messages.create(

@@ -381,7 +381,7 @@ if __name__ == "__main__":
                     ssRow.get_column(ssColumnMap['starttime']).value,
                     "%Y-%m-%d %H:%M"
                 )
-                event['duration'] = getWebinarProperty('duration', ssRow) or 60 # by default, set duration to 1 hour
+                event['duration'] = int(float(getWebinarProperty('duration', ssRow))) or 60 # by default, set duration to 1 hour
                 event['enddatetime'] = event["startdatetime"]+timedelta(minutes=event['duration'])
                 event['timezone'] = getWebinarProperty('timezone', ssRow) or "UTC"
                 event['siteUrl'] = getWebinarProperty('siteUrl', ssRow) # if not set, a Webex default will be used
@@ -403,7 +403,7 @@ if __name__ == "__main__":
                     event['panelists'] = stringContactsToDict(event['panelists'])
                 event['id'] = ssRow.get_column(ssColumnMap['webinarId']).value
             except Exception as ex:
-                logger.error("Failed to create \"{}\". Some webinar property is not valid: {}".format(event['title'], ex))
+                logger.error("Failed to create/update \"{}\". Some webinar property is not valid: {}".format(event['title'], ex))
                 continue
 
             #dev
