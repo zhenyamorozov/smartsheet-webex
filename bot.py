@@ -24,18 +24,19 @@ webhookTargetUrl = webAppPublicUrl + "/webhook"
 
 # initialize Webex Teams bot control object
 try:
-    botApi = WebexTeamsAPI(WEBEX_BOT_TOKEN)
+    botApi = WebexTeamsAPI(WEBEX_BOT_TOKEN) # this will not raise an exception, even if bot token isn't correct, so,
+    # need to make an API call to check API is functional
+    assert botApi.people.me()
 except:
-    logger.fatal("Could not initialize Webex bot API object.")
+    print("Could not initialize Webex bot API object.")
     raise SystemExit()
 
 
-logger.debug("Creating webhooks in Webex")
+# print("Creating webhooks in Webex")
 
 # delete ALL current webhooks - this bot is supposed to be used only with one instance of the app
 for wh in botApi.webhooks.list():
-    pass
-    # TODO prod: botApi.webhooks.delete(wh.id)
+    botApi.webhooks.delete(wh.id)
 
 # create new webhooks
 try:
@@ -47,7 +48,7 @@ try:
         filter="roomId=" + WEBEX_BOT_ROOM_ID
     )
 except:
-    pass
+    print("Could not create a Webex bot API webhook.")
 try:
     botApi.webhooks.create(
         name = "Smartsheet-Webex bot - messages",
@@ -57,13 +58,13 @@ try:
         filter="roomId=" + WEBEX_BOT_ROOM_ID
     )
 except:
-    pass
+    print("Could not create a Webex bot API webhook.")
 
 
 
 @app.route("/webhook", methods = ['GET', 'POST'])
 def webhook():
-    print ("Webhook arrived.")
+    # print ("Webhook arrived.")
     # print(request)
     
     webhookJson = request.json
@@ -74,7 +75,7 @@ def webhook():
         assert webhookJson['event'] == "created"
         assert webhookJson['data']['roomId'] == WEBEX_BOT_ROOM_ID
     except:
-        # logger.error("The arrived webhook is malformed or does not indocate a new message created in the log and control room")
+        print("The arrived webhook is malformed or does not indicate an actionable event in the log and control room")
         return "Webhook processed."
 
     # will need our own name
@@ -135,7 +136,7 @@ def webhook():
 
         # "Schedule now" action
         if action.type == "submit" and action.inputs['act'] == "schedule now":
-            botApi.messages.create(text = "The process to create/update sessions has started.", roomId=WEBEX_BOT_ROOM_ID)
+            botApi.messages.create(text = "The process to create/update webinars has started.", roomId=WEBEX_BOT_ROOM_ID)
             # TODO
 
 
