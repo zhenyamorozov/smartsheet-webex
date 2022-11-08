@@ -58,7 +58,7 @@ Required Variables
 * ``WEBEX_INTEGRATION_CLIENT_ID`` - Webex integration Client ID value
 * ``WEBEX_INTEGRATION_CLIENT_SECRET`` - Webex integration Client Secret
 * ``WEBEX_BOT_TOKEN`` - Webex bot access token
-* ``WEBEX_BOT_ROOM_ID`` - Webex bot room ID. This bot can only be used in one Webex room.
+* ``WEBEX_BOT_ROOM_ID`` - Webex bot room ID. This bot can only be used in one Webex room. The room can be direct or group room.
 
 Optional Variables
 ------------------
