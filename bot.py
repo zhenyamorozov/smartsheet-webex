@@ -392,7 +392,13 @@ def webhook():
             webexApi = webexteamssdk.WebexTeamsAPI(access_token)
             webexMe = webexApi.people.me()
 
-            # print(url_for('auth', _external=True))
+            if os.getenv("FLASK_ENV") == "development":
+                # dev
+                authUrl = "http://localhost:5000"+"/auth"
+            else:
+                # prod
+                authUrl = url_for('auth', _external=True)
+
 
             card = AdaptiveCard(
                 fallbackText="Adaptive cards feature is required to use me.",
@@ -430,13 +436,13 @@ def webhook():
                                 ),
                             ],
                             actions= [
-                                OpenUrl(title = "Authorize", url = url_for('auth', _external=True)),
+                                OpenUrl(title = "Authorize", url = authUrl),
                                 ShowCard(
                                     title="Copy URL",
                                     card = AdaptiveCard(
                                         body= [
                                             TextBlock(
-                                                text = url_for('auth', _external=True),
+                                                text = authUrl,
                                                 wrap = True, 
                                             ),
                                         ],

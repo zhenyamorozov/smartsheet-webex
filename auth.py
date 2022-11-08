@@ -11,8 +11,8 @@ import requests
 
 
 # OAuth static vars
-oa_authorizationURI = "https://api.ciscospark.com/v1/authorize?"
-oa_tokenURI = "https://api.ciscospark.com/v1/access_token"
+oa_authorizationURI = "https://webexapis.com/v1/authorize?"
+oa_tokenURI = "https://webexapis.com/v1/access_token"
 if os.getenv("FLASK_ENV") == "development":
     # dev
     oa_callbackUri = "http://localhost:5000"+"/callback"
@@ -38,8 +38,8 @@ def auth():
     state = str(uuid4())
     # print("state: ", state)
     # # State is used to prevent CSRF, save state in session
-    # session['oauth_state'] = state
-    # session.modified = True
+    session['oauth_state'] = state
+    session.modified = True
 
     oa_params = {'response_type':"code",
               'client_id': WEBEX_INTEGRATION_CLIENT_ID,
@@ -74,11 +74,12 @@ def callback():
     if not oa_code:
         return "Authorization failed. Authorization provider did not return authorization code."
 
-    # oa_state = request.args.get('state', '')
-    # if not oa_state:
-    #     return "Authorization failed. Authorization provider did not return state."
-    # if oa_state != session['oauth_state']:
-    #     return "Authorization failed. State does not match."
+    # check state to prevent CSRF
+    oa_state = request.args.get('state', '')
+    if not oa_state:
+        return "Authorization failed. Authorization provider did not return state."
+    if oa_state != session['oauth_state']:
+        return "Authorization failed. State does not match."
 
     oa_data = {
         'grant_type': "authorization_code",
