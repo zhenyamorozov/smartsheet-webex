@@ -265,16 +265,6 @@ def webhook():
         # "Create Smartsheet Template" action
         if action.type == "submit" and action.inputs['act'] == "create smartsheet template":
             # print(action)
-
-            # dev
-            # ssApi = smartsheet.Smartsheet()
-            # ssApi.errors_as_exceptions(True)
-            # sh = ssApi.Sheets.get_sheet(4997590048630660, level=2)
-            # sh_dict = sh.to_dict()
-
-            # /dev
-
-
             try:
                 ssApi = smartsheet.Smartsheet()
                 ssApi.errors_as_exceptions(True)

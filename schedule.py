@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import logging
 import io
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.utils import getaddresses
 import tempfile
 
@@ -95,12 +95,12 @@ def loadParameters():
                 SMARTSHEET_PARAMS['columns'][i] = columns[i]
             logger.info("Optional Smartsheet column parameters are loaded from env.")
         except:
-            logger.error("Could not load optional Smartsheet column parameters.")
+            logger.info("Could not load optional Smartsheet column parameters.")
         try:
             SMARTSHEET_PARAMS['nicknames'] = json.loads(os.getenv('SMARTSHEET_PARAMS'))['nicknames']
             logger.info("Optional Smartsheet nickname parameters are loaded from env.")
         except:
-            logger.error("Could not load optional Smartsheet nickname parameters.")
+            logger.info("Could not load optional Smartsheet nickname parameters.")
 
     else:
         logger.info("No optional Smartsheet parameters set in env.")
@@ -112,7 +112,7 @@ def loadParameters():
             WEBEX_INTEGRATION_PARAMS = json.loads(os.getenv('WEBEX_INTEGRATION_PARAMS'))
             logger.info("Optional Webex Integration parameters are loaded from env.")
         except Exception as ex:
-            logger.error("Could not load optional Webex Integration parameters. "+str(ex))
+            logger.info("Could not load optional Webex Integration parameters. "+str(ex))
     else:
         logger.info("No optional Webex Integration parameters set in env.")
     
@@ -381,7 +381,9 @@ if __name__ == "__main__":
                     ssRow.get_column(ssColumnMap['starttime']).value,
                     "%Y-%m-%d %H:%M"
                 )
-                event['duration'] = int(float(getWebinarProperty('duration', ssRow))) or 60 # by default, set duration to 1 hour
+                event['startdatetime'] = event['startdatetime'].replace(tzinfo=timezone.utc) # set Zulu time (UTC timezone), Smartsheet always returns dates in UTC
+                event['duration'] = getWebinarProperty('duration', ssRow) or 60 # by default, set duration to 1 hour
+                event['duration'] = int(float(event['duration'])) # make sure it's integer
                 event['enddatetime'] = event["startdatetime"]+timedelta(minutes=event['duration'])
                 event['timezone'] = getWebinarProperty('timezone', ssRow) or "UTC"
                 event['siteUrl'] = getWebinarProperty('siteUrl', ssRow) # if not set, a Webex default will be used
@@ -480,22 +482,33 @@ if __name__ == "__main__":
             else:
                 # update existing event
                 try:
-                    w = webexApi.meetings.get(event['id']) # will need some additional details from Webex
-                    w = webexApi.meetings.update(
-                        meetingId = event['id'],
-                        title = event['title'],
-                        agenda = event['agenda'],
-                        scheduledType=event['scheduledType'],
-                        start = str(event["startdatetime"]),
-                        end = str(event["enddatetime"]),
-                        timezone = event['timezone'],
-                        siteUrl = event['siteUrl'],
-                        password = event['password'] or w.password, # password is required for update()
-                        panelistPassword = event['panelistPassword'],
-                        reminderTime = event['reminderTime'],
-                        registration=event['registration']
-                    )
-                    logger.warning("Updated webinar {}".format(w.title))
+                    w = webexApi.meetings.get(event['id'])
+
+                    needUpdateSendEmail = \
+                           event['title'] != w.title \
+                        or event['startdatetime'] != datetime.fromisoformat(w.start) \
+                        or event['enddatetime'] != datetime.fromisoformat(w.end)
+
+                    needUpdate = needUpdateSendEmail \
+                        or event['agenda'] != w.agenda
+
+                    if needUpdate:
+                        w = webexApi.meetings.update(
+                            meetingId = event['id'],
+                            title = event['title'],
+                            agenda = event['agenda'],
+                            scheduledType=event['scheduledType'],
+                            start = str(event["startdatetime"]),
+                            end = str(event["enddatetime"]),
+                            # timezone = event['timezone'],
+                            # siteUrl = event['siteUrl'],
+                            password = event['password'] or w.password, # password is required for update()
+                            panelistPassword = event['panelistPassword'],
+                            # reminderTime = event['reminderTime'],
+                            # registration=event['registration'],
+                            sendEmail = needUpdateSendEmail
+                        )
+                        logger.warning("Updated webinar information: {}".format(w.title))
                 except Exception as ex:
                     logger.error("Failed to update webinar \"{}\". API returned error: {}".format(event['title'], ex))
                     try:
@@ -530,14 +543,60 @@ if __name__ == "__main__":
                 except Exception as ex:
                     logger.error("Failed to update webinar Registration Count into Smartsheet. API returned error: {}".format(ex))
 
+            # update invitees (panelists and cohosts) for created or updated event
+            try:
+                # collect currently invited panelists and cohosts
+                # also serves as an "uninvite list" - checked invitees are removed from the list
+                # if there are any remaining, they will be uninvited
+                currentInvitees = {}
+                for i in webexApi.meeting_invitees.list(w.id):
+                    if i.panelist or i.coHost:
+                        currentInvitees[i.email] = i    
+            except Exception as ex:
+                logger.error("Failed to process invitees for webinar \"{}\". API returned error: {}".format(event['title'], ex))
+            else:
 
-            # update panelists for created or updated event
-            # print(w)
-            # TODO when Meeting Invitees endpoint support is added in SDK
-            
-     
-
-            # break # TODO temporary: process only first row
+                # process panelists and cohosts
+                eventInvitees = event['panelists'] | event['cohosts'] # merged dicts: https://peps.python.org/pep-0584/
+                for email in eventInvitees:
+                    if email in currentInvitees:
+                        # already invited
+                        if eventInvitees[email] != currentInvitees[email].displayName \
+                            or (email in event['cohosts']) != currentInvitees[email].coHost:
+                            # name or status changed
+                            try:
+                                r = webexApi.meeting_invitees.update(
+                                    meetingInviteeId = currentInvitees[email].id,
+                                    email = email,
+                                    displayName = eventInvitees[email],
+                                    panelist = email in event['panelists'] or email in event['cohosts'], # cohosts must also be panelists as per Webex API behavior
+                                    coHost = email in event['cohosts'],
+                                    sendEmail = True
+                                )
+                            except Exception as ex:
+                                logger.error("Failed to update invitee \"{}\" for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
+                        del currentInvitees[email] # remove processed from the uninvite list
+                    else:
+                        # new, need to invite
+                        try:
+                            r = webexApi.meeting_invitees.create(
+                                meetingId = w.id, 
+                                email = email,
+                                displayName = eventInvitees[email],
+                                panelist = email in event['panelists'] or email in event['cohosts'], # cohosts must also be panelists as per Webex API behavior
+                                coHost = email in event['cohosts'],
+                                sendEmail = True
+                            )                    
+                        except Exception as ex:
+                            logger.error("Failed to create invitee \'{}\' for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
+                # uninvite panelists/cohosts who remained in the uninvite list
+                for email in currentInvitees:
+                    try:
+                        r = webexApi.meeting_invitees.delete(
+                            meetingInviteeId = currentInvitees[email].id
+                        )
+                    except Exception as ex:
+                        logger.error("Failed to delete invitee \'{}\'for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
 
     #/for
         
