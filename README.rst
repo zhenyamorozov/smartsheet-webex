@@ -42,7 +42,7 @@ How it works
 Get Started
 -----------
 
-This automation requires a few things to be set up. Look for details in `Get started`_
+This automation requires a few things to be set up. Look for details in `Get Started <docs/get_started.rst>`_
 
 
 Contribute
