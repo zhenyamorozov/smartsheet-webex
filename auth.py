@@ -35,21 +35,20 @@ def auth():
     using an URL with a few key OAuth parameters.
     """
 
+    # State is used to prevent CSRF, generate random and save state in session
     state = str(uuid4())
-    # print("state: ", state)
-    # # State is used to prevent CSRF, save state in session
     session['oauth_state'] = state
     session.modified = True
 
-    oa_params = {'response_type':"code",
-              'client_id': WEBEX_INTEGRATION_CLIENT_ID,
-              'redirect_uri': oa_callbackUri,
-              'scope':"meeting:schedules_read meeting:schedules_write spark:all meeting:preferences_read meeting:recordings_read meeting:participants_read",
-              'state': state
-              }
+    oa_params = {
+        'response_type':"code",
+        'client_id': WEBEX_INTEGRATION_CLIENT_ID,
+        'redirect_uri': oa_callbackUri,
+        'scope':"meeting:schedules_read meeting:schedules_write spark:all meeting:preferences_read meeting:recordings_read meeting:participants_read",
+        'state': state
+    }
     oa_authorizationFullURI = oa_authorizationURI+urllib.parse.urlencode(oa_params)
     # print(oa_authorizationFullURI)
-
 
     return redirect(oa_authorizationFullURI)
 
@@ -64,7 +63,7 @@ def callback():
     callback URL. With this redirection comes an authorization code included
     in the redirect URL. We will use that to obtain an access token.
     """
-    print("OAuth callback start")
+    print("OAuth callback received")
     
     oa_error = request.args.get("error", '')
     if oa_error:
