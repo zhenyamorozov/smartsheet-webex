@@ -49,13 +49,13 @@ def saveSmartsheetId(sheetId):
 
 
 def getWebexIntegrationToken(webex_integration_client_id, webex_integration_client_secret):
-    """Returns a fresh, usable Webex Integration access_token. 
+    """Returns a fresh, usable Webex Integration access token. 
 
     Webex Integration access tokens are acquired through OAuth and must be refreshed regularly.
     OAuth-provided access token and refresh token have limited lifetimes. As of now,
         access_token lifetime is 14 days since creation
         refresh_token lifetime is 90 days since last use
-    This function reads tokens from Parameter Store, refreshes the access_token if it's more than halftime ols,
+    This function reads tokens from Parameter Store, refreshes the access_token if it's more than halftime old,
     and returns the access_token.
 
     Args:
@@ -63,7 +63,7 @@ def getWebexIntegrationToken(webex_integration_client_id, webex_integration_clie
         webex_integration_client_secret - used if access token refresh is needed
 
     Returns:
-        access_token: fresh, usable Webex Integration access token
+        accessToken: fresh, usable Webex Integration access token
     """
 
     # read access tokens from Parameter Store
@@ -87,9 +87,10 @@ def getWebexIntegrationToken(webex_integration_client_id, webex_integration_clie
             client_secret = webex_integration_client_secret,
             refresh_token = refreshToken
         )
-        
         # save the new access tokin to the Parameter Store
         saveWebexIntegrationTokens(dict(newTokens.json_data))
+
+        accessToken = newTokens.access_token
 
     ssm_client.close()
     return accessToken
@@ -105,6 +106,7 @@ def saveWebexIntegrationTokens(tokens):
         None
     """
     tokens['created'] = time.time()
+
     ssm_client = boto3.client("ssm")
     ssmStoredParameter = ssm_client.put_parameter(
         Name = "/daedalus/webexTokens",
