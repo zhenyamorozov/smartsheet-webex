@@ -2,7 +2,11 @@ from __main__ import *
 
 from flask import request, url_for
 
-from param_store import getSmartsheetId, saveSmartsheetId, getWebexIntegrationToken
+from param_store import (
+    getSmartsheetId,
+    saveSmartsheetId,
+    getWebexIntegrationToken
+)
 
 import os
 import urllib.parse

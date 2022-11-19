@@ -18,8 +18,17 @@ import webexteamssdk
 import smartsheet
 
 # my imports
-from param_store import getSmartsheetId, getWebexIntegrationToken
-from exceptions import ParameterStoreError, SmartsheetInitError, SmartsheetColumnMappingError, WebexIntegrationInitError, WebexBotInitError
+from param_store import (
+    getSmartsheetId,
+    getWebexIntegrationToken
+)
+from exceptions import (
+    ParameterStoreError,
+    SmartsheetInitError,
+    SmartsheetColumnMappingError,
+    WebexIntegrationInitError,
+    WebexBotInitError
+)
 
 
 def loadParameters():
