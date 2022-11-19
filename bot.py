@@ -1,14 +1,12 @@
 from __main__ import *
 
-from flask import Flask, redirect, request, session, url_for
+from flask import request, url_for
 
-from param_store import *
+from param_store import getSmartsheetId, saveSmartsheetId, getWebexIntegrationToken
 
 import os
 import urllib.parse
 from datetime import datetime
-
-#import webexteamssdk
 
 from webexteamssdk import WebexTeamsAPI
 from webexteamssdk.models.cards.card import AdaptiveCard
@@ -24,10 +22,10 @@ webhookTargetUrl = webAppPublicUrl + "/webhook"
 
 # initialize Webex Teams bot control object
 try:
-    botApi = WebexTeamsAPI(WEBEX_BOT_TOKEN) # this will not raise an exception, even if bot token isn't correct, so,
+    botApi = WebexTeamsAPI(WEBEX_BOT_TOKEN)    # this will not raise an exception, even if bot token isn't correct, so,
     # need to make an API call to check API is functional
     assert botApi.people.me()
-except:
+except Exception:
     print("Could not initialize Webex bot API object.")
     raise SystemExit()
 
@@ -41,32 +39,31 @@ for wh in botApi.webhooks.list():
 # create new webhooks
 try:
     botApi.webhooks.create(
-        name = "Smartsheet-Webex bot - attachmentActions",
-        targetUrl = webhookTargetUrl, 
-        resource = "attachmentActions", 
-        event = "created",
+        name="Smartsheet-Webex bot - attachmentActions",
+        targetUrl=webhookTargetUrl,
+        resource="attachmentActions",
+        event="created",
         filter="roomId=" + WEBEX_BOT_ROOM_ID
     )
-except:
+except Exception:
     print("Could not create a Webex bot API webhook.")
 try:
     botApi.webhooks.create(
-        name = "Smartsheet-Webex bot - messages",
-        targetUrl = webhookTargetUrl, 
-        resource = "messages", 
-        event = "created",
+        name="Smartsheet-Webex bot - messages",
+        targetUrl=webhookTargetUrl,
+        resource="messages",
+        event="created",
         filter="roomId=" + WEBEX_BOT_ROOM_ID
     )
-except:
+except Exception:
     print("Could not create a Webex bot API webhook.")
 
 
-
-@app.route("/webhook", methods = ['GET', 'POST'])
+@app.route("/webhook", methods=['GET', 'POST'])
 def webhook():
     # print ("Webhook arrived.")
     # print(request)
-    
+
     webhookJson = request.json
 
     # check if the received webhook is properly formed and relevant
@@ -74,7 +71,7 @@ def webhook():
         assert webhookJson['resource'] in ("messages", "attachmentActions")
         assert webhookJson['event'] == "created"
         assert webhookJson['data']['roomId'] == WEBEX_BOT_ROOM_ID
-    except:
+    except Exception:
         print("The arrived webhook is malformed or does not indicate an actionable event in the log and control room")
         return "Webhook processed."
 
@@ -86,16 +83,16 @@ def webhook():
         fallbackText="Hi, I am {}, I automatically create Webex Webinar sessions based on information in a Smartsheet. Adaptive cards feature is required to use me.".format(me.nickName),
         body=[
             TextBlock(
-                text = "Smartsheet to Webex Webinar automation",
-                weight = FontWeight.BOLDER,
-                size = FontSize.MEDIUM,
+                text="Smartsheet to Webex Webinar automation",
+                weight=FontWeight.BOLDER,
+                size=FontSize.MEDIUM,
             ),
             TextBlock(
-                text = "Hi, I am {}, I automatically create Webex Webinar sessions based on information in a Smartsheet.".format(me.nickName),
-                wrap = True, 
+                text="Hi, I am {}, I automatically create Webex Webinar sessions based on information in a Smartsheet.".format(me.nickName),
+                wrap=True,
             )
 
-        ], 
+        ],
         actions=[
             Submit(title="Schedule now", data={'act': "schedule now"}),
             Submit(title="Set Smartsheet", data={'act': "set smartsheet"}),
@@ -104,7 +101,6 @@ def webhook():
         ]
     )
 
-   
     # if webhook indicates a message sent by us (the bot itself), ignore it
     if webhookJson['data']['personId'] == me.id:
         return "Webhook processed."
@@ -123,22 +119,21 @@ def webhook():
 
         # retrieve the new attachment action details
         action = botApi.attachment_actions.get(webhookJson['data']['id'])
-        # print("Action:\n", action)
+        print("Action:\n", action)
 
         # print("actionInputs", actionInputs)
 
         # "?" (help) action
         if action.type == "submit" and action.inputs['act'] == "help":
-            botApi.messages.create(text = "Help text placeholder.", roomId=WEBEX_BOT_ROOM_ID)
+            botApi.messages.create(text="Help text placeholder.", roomId=WEBEX_BOT_ROOM_ID)
             # resend greeting card
             botApi.messages.create(text=greetingCard.fallbackText, roomId=WEBEX_BOT_ROOM_ID, attachments=[greetingCard])
             pass
 
         # "Schedule now" action
         if action.type == "submit" and action.inputs['act'] == "schedule now":
-            botApi.messages.create(text = "The process to create/update webinars has started.", roomId=WEBEX_BOT_ROOM_ID)
+            botApi.messages.create(text="The process to create/update webinars has started.", roomId=WEBEX_BOT_ROOM_ID)
             # TODO
-
 
         # "Set Smartsheet" action
         if action.type == "submit" and action.inputs['act'] == "set smartsheet":
@@ -152,7 +147,7 @@ def webhook():
 
                 sheetName = ssApi.Sheets.get_sheet(sheetId).name
 
-            except Exception as ex: 
+            except Exception:
                 sheetId = ""
                 sheetName = ""
 
@@ -160,45 +155,44 @@ def webhook():
                 fallbackText="Adaptive cards feature is required to use me.",
                 body=[
                     TextBlock(
-                        text = "Smartsheet setting",
-                        weight = FontWeight.BOLDER,
-                        size = FontSize.MEDIUM,
+                        text="Smartsheet setting",
+                        weight=FontWeight.BOLDER,
+                        size=FontSize.MEDIUM,
                     ),
                     TextBlock(
-                        text = "Information for scheduled sessions is taken from a Smartsheet. This is the current working smartsheet. You can change it here.",
-                        wrap = True, 
+                        text="Information for scheduled sessions is taken from a Smartsheet. This is the current working smartsheet. You can change it here.",
+                        wrap=True,
                     ),
                     FactSet(
-                        facts = [
+                        facts=[
                             Fact(
-                                title = "Name",
-                                value = str(sheetName)
+                                title="Name",
+                                value=str(sheetName)
                             ),
                             Fact(
-                                title = "ID",
-                                value = sheetId
+                                title="ID",
+                                value=sheetId
                             )
                         ]
                     )
-                ], 
+                ],
                 actions=[
                     ShowCard(
                         title="Change",
-                        card = AdaptiveCard(
-                            body= [
+                        card=AdaptiveCard(
+                            body=[
                                 TextBlock(
-                                    text = "Smartsheet ID can be found  under File - Properties. It is a numeric value. Alternatively, you can just copy the Smartsheet URL here. ",
-                                    wrap = True, 
+                                    text="Smartsheet ID can be found  under File - Properties. It is a numeric value. Alternatively, you can just copy the Smartsheet URL here. ",
+                                    wrap=True,
                                 ),
-                                Text('newSmartsheetId', placeholder="New Smartsheet ID", isMultiline=False), 
+                                Text('newSmartsheetId', placeholder="New Smartsheet ID", isMultiline=False),
                             ],
-                            actions= [
+                            actions=[
                                 Submit(title="OK", data={'act': "save smartsheet id"}),
                             ]
                         )
                     ),
                     Submit(title="Create Template", data={'act': "create smartsheet template"})
-                    
                 ]
             )
 
@@ -206,18 +200,16 @@ def webhook():
             botApi.messages.create(text="Could not send the action card", roomId=WEBEX_BOT_ROOM_ID, attachments=[card])
             pass
 
-
         # "Save Smartsheet ID" action
         if action.type == "submit" and action.inputs['act'] == "save smartsheet id":
             # print(action)
-            # newSheetId = 
 
-            if not 'newSmartsheetId' in action.inputs or not action.inputs['newSmartsheetId'].strip():
+            if 'newSmartsheetId' not in action.inputs or not action.inputs['newSmartsheetId'].strip():
                 botApi.messages.create(
-                    text = "Smartsheet ID cannot be empty.", 
+                    text="Smartsheet ID cannot be empty.",
                     roomId=WEBEX_BOT_ROOM_ID
-                )      
-            else:      
+                )
+            else:
                 try:
                     newSheetId = action.inputs['newSmartsheetId'].strip()
 
@@ -230,7 +222,7 @@ def webhook():
                     # else try to use the provided ID as-is
                     else:
                         pass
-                    
+
                     # fetch the new smartsheet
                     ssApi = smartsheet.Smartsheet()
                     ssApi.errors_as_exceptions(True)
@@ -243,24 +235,23 @@ def webhook():
 
                     try:
                         saveSmartsheetId(str(newSheetId))
-                        # send cpnfirmation message    
+                        # send cpnfirmation message
                         botApi.messages.create(
-                            markdown = "New Smartsheet is set:\n``{}``".format(newSheetName), 
+                            markdown="New Smartsheet is set:\n``{}``".format(newSheetName),
                             roomId=WEBEX_BOT_ROOM_ID
                         )
                         # resend greeting card
                         botApi.messages.create(text=greetingCard.fallbackText, roomId=WEBEX_BOT_ROOM_ID, attachments=[greetingCard])
-                    except:
+                    except Exception:
                         botApi.messages.create(
-                            text = "Could not save new Smartsheet ID to Parameter Store. Check local AWS configuration.", 
+                            text="Could not save new Smartsheet ID to Parameter Store. Check local AWS configuration.",
                             roomId=WEBEX_BOT_ROOM_ID
                         )
-                except:
+                except Exception:
                     botApi.messages.create(
-                        text = "That Sheet ID did not work. Try again.", 
+                        text="That Sheet ID did not work. Try again.",
                         roomId=WEBEX_BOT_ROOM_ID
                     )
-
 
         # "Create Smartsheet Template" action
         if action.type == "submit" and action.inputs['act'] == "create smartsheet template":
@@ -269,19 +260,19 @@ def webhook():
                 ssApi = smartsheet.Smartsheet()
                 ssApi.errors_as_exceptions(True)
                 sheetSpec = smartsheet.models.Sheet({
-                    'name': "Template "+datetime.utcnow().strftime("%Y%m%d-%H%M%S"),
+                    'name': "Template " + datetime.utcnow().strftime("%Y%m%d-%H%M%S"),
                     'columns': [
                         {
                             'title': "Create",
                             'type': smartsheet.models.enums.column_type.ColumnType.PICKLIST,
                             'options': ["yes", "no"],
                             'description': "To check out a webinar for creation, change this value to 'yes'. Required field."
-                        }, 
+                        },
                         {
                             'title': "Start Date",
                             'type': smartsheet.models.enums.column_type.ColumnType.DATE,
                             'description': "You can change the date format in Profile icon - Personal Seetings - Settings - Regional Preferences. Required field."
-                        }, 
+                        },
                         {
                             'title': "Start Time",
                             'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
@@ -334,7 +325,6 @@ def webhook():
                             'type': smartsheet.models.enums.column_type.ColumnType.TEXT_NUMBER,
                             'description': "Automatically populated."
                         }
-
                     ]
                 })
                 newSheet = ssApi.Home.create_sheet(sheetSpec).result
@@ -344,14 +334,14 @@ def webhook():
                         col_id = col.id_
                         col.id_ = col.version = None
                         col.validation = True
-                        col.format = ",,,,,,,,,18,,,,,," # Smartsheet formatting is sorcery
+                        col.format = ",,,,,,,,,18,,,,,,"    # Smartsheet formatting is sorcery
                         ssApi.Sheets.update_column(newSheet.id_, col_id, col)
                     if col.title == "Start Date":
                         col_id = col.id_
                         col.id_ = col.version = None
                         col.validation = True
                         ssApi.Sheets.update_column(newSheet.id_, col_id, col)
-                    if col.title in ( "Webinar ID", "Attendee URL", "Host Key", "Registrant Count" ) :
+                    if col.title in ("Webinar ID", "Attendee URL", "Host Key", "Registrant Count"):
                         col_id = col.id_
                         col.id_ = col.version = col.validation = col.primary = None
                         col.locked = True
@@ -359,24 +349,22 @@ def webhook():
                         ssApi.Sheets.update_column(newSheet.id_, col_id, col)
 
                 botApi.messages.create(
-                    text = "Here is your newly created Smartsheet template. Don't forget to set it as the current working template.\n{}".format(newSheet.permalink), 
+                    text="Here is your newly created Smartsheet template. Don't forget to set it as the current working template.\n{}".format(newSheet.permalink),
                     roomId=WEBEX_BOT_ROOM_ID
                 )
 
-            except Exception as ex: 
+            except Exception:
                 botApi.messages.create(
-                    text = "Couldn't create a Smartsheet template.", 
+                    text="Couldn't create a Smartsheet template.",
                     roomId=WEBEX_BOT_ROOM_ID
                 )
-
-
 
         # "Authorize Webex" action
         if action.type == "submit" and action.inputs['act'] == "authorize webex":
             # get a fresh Webex Integration access token
             access_token = getWebexIntegrationToken(
-                webex_integration_client_id = WEBEX_INTEGRATION_CLIENT_ID,
-                webex_integration_client_secret = WEBEX_INTEGRATION_CLIENT_SECRET
+                webex_integration_client_id=WEBEX_INTEGRATION_CLIENT_ID,
+                webex_integration_client_secret=WEBEX_INTEGRATION_CLIENT_SECRET
             )
 
             # get information about the current authorized Webex user
@@ -385,56 +373,55 @@ def webhook():
 
             if os.getenv("FLASK_ENV") == "development":
                 # dev
-                authUrl = "http://localhost:5000"+"/auth"
+                authUrl = "http://localhost:5000" + "/auth"
             else:
                 # prod
                 authUrl = url_for('auth', _external=True)
-
 
             card = AdaptiveCard(
                 fallbackText="Adaptive cards feature is required to use me.",
                 body=[
                     TextBlock(
-                        text = "Webex integration authorization",
-                        weight = FontWeight.BOLDER,
-                        size = FontSize.MEDIUM,
+                        text="Webex integration authorization",
+                        weight=FontWeight.BOLDER,
+                        size=FontSize.MEDIUM,
                     ),
                     TextBlock(
-                        text = "Webex integration is used to create Webex Webinar sessions. This is the user currently authorized to create sessions. You can update authorization here.",
-                        wrap = True, 
+                        text="Webex integration is used to create Webex Webinar sessions. This is the user currently authorized to create sessions. You can update authorization here.",
+                        wrap=True,
                     ),
                     FactSet(
-                        facts = [
+                        facts=[
                             Fact(
-                                title = "Name",
-                                value = webexMe.displayName
+                                title="Name",
+                                value=webexMe.displayName
                             ),
                             Fact(
-                                title = "Email",
-                                value = webexMe.emails[0]
+                                title="Email",
+                                value=webexMe.emails[0]
                             )
                         ]
                     )
-                ], 
+                ],
                 actions=[
                     ShowCard(
                         title="Change",
-                        card = AdaptiveCard(
-                            body= [
+                        card=AdaptiveCard(
+                            body=[
                                 TextBlock(
-                                    text = "Click the button below and complete authorization process in your broswer.",
-                                    wrap = True, 
+                                    text="Click the button below and complete authorization process in your broswer.",
+                                    wrap=True,
                                 ),
                             ],
-                            actions= [
-                                OpenUrl(title = "Authorize", url = authUrl),
+                            actions=[
+                                OpenUrl(title="Authorize", url=authUrl),
                                 ShowCard(
                                     title="Copy URL",
-                                    card = AdaptiveCard(
-                                        body= [
+                                    card=AdaptiveCard(
+                                        body=[
                                             TextBlock(
-                                                text = authUrl,
-                                                wrap = True, 
+                                                text=authUrl,
+                                                wrap=True,
                                             ),
                                         ],
                                     )
@@ -443,7 +430,7 @@ def webhook():
                         )
                     )
                 ]
-            ) # /AdaptiveCard
+            )    # /AdaptiveCard
 
             botApi.messages.create(text="Could not send the action card", roomId=WEBEX_BOT_ROOM_ID, attachments=[card])
 

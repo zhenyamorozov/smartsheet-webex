@@ -1,6 +1,6 @@
 from __main__ import *
 
-from flask import Flask, redirect, request, session
+from flask import redirect, request, session
 
 from param_store import *
 
@@ -15,16 +15,17 @@ oa_authorizationURI = "https://webexapis.com/v1/authorize?"
 oa_tokenURI = "https://webexapis.com/v1/access_token"
 if os.getenv("FLASK_ENV") == "development":
     # dev
-    oa_callbackUri = "http://localhost:5000"+"/callback"
+    oa_callbackUri = "http://localhost:5000" + "/callback"
 else:
     # prod
-    oa_callbackUri = webAppPublicUrl+"/callback"
+    oa_callbackUri = webAppPublicUrl + "/callback"
 
 
 @app.route("/")
 def root():
     print("/ requested")
     return "Hey, this is the bot running on Flask!"
+
 
 # OAuth Step 1
 # this function is never to be used as the auth URL is provided directly
@@ -41,19 +42,21 @@ def auth():
     session.modified = True
 
     oa_params = {
-        'response_type':"code",
+        'response_type': "code",
         'client_id': WEBEX_INTEGRATION_CLIENT_ID,
         'redirect_uri': oa_callbackUri,
-        'scope':"meeting:schedules_read meeting:schedules_write spark:all meeting:preferences_read meeting:recordings_read meeting:participants_read",
+        'scope': "meeting:schedules_read meeting:schedules_write spark:all meeting:preferences_read meeting:recordings_read meeting:participants_read",
         'state': state
     }
-    oa_authorizationFullURI = oa_authorizationURI+urllib.parse.urlencode(oa_params)
+    oa_authorizationFullURI = oa_authorizationURI + urllib.parse.urlencode(oa_params)
     # print(oa_authorizationFullURI)
 
     return redirect(oa_authorizationFullURI)
 
+
 # OAuth Step 2
 # Step 2: User authorization, this happens on the provider side.
+
 
 # OAuth Step 3
 @app.route("/callback", methods=["GET"])
@@ -64,7 +67,7 @@ def callback():
     in the redirect URL. We will use that to obtain an access token.
     """
     print("OAuth callback received")
-    
+
     oa_error = request.args.get("error", '')
     if oa_error:
         return "Error: " + oa_error
@@ -96,6 +99,6 @@ def callback():
     else:
         try:
             saveWebexIntegrationTokens(oa_tokens)
-        except Exception as ex:
+        except Exception:
             return "Webex authorization was successful, but could not save tokens to Parameter Store. Check local AWS configuration."
         return "Authorization successful. Access and refresh tokens retrieved and saved in Parameter Store."

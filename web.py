@@ -4,7 +4,7 @@ This web application serves two purposes:
     - respond to Webex bot webhooks
 """
 
-from flask import Flask, redirect, request, session
+from flask import Flask
 
 import os
 from dotenv import load_dotenv
@@ -15,26 +15,26 @@ load_dotenv(override=True)
 
 # load env vars for Flask
 FLASK_SECRET_KEY = os.getenv('FLASK_SECRET_KEY', "dev")
-if FLASK_SECRET_KEY=="dev": 
+if FLASK_SECRET_KEY == "dev":
     print("Flask secret key is not set in env. Set to any random string with FLASK_SECRET_KEY environment variable.")
 
 # load env vars for Webex integration
 WEBEX_INTEGRATION_CLIENT_ID = os.getenv('WEBEX_INTEGRATION_CLIENT_ID')
-if not WEBEX_INTEGRATION_CLIENT_ID: 
+if not WEBEX_INTEGRATION_CLIENT_ID:
     print("Webex Integration Client ID is missing. Provide with WEBEX_INTEGRATION_CLIENT_ID environment variable.")
     raise SystemExit()
 WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv('WEBEX_INTEGRATION_CLIENT_SECRET')
-if not WEBEX_INTEGRATION_CLIENT_SECRET: 
+if not WEBEX_INTEGRATION_CLIENT_SECRET:
     print("Webex Integration Client Secret is missing. Provide with WEBEX_INTEGRATION_CLIENT_SECRET environment variable.")
     raise SystemExit()
 
 # load env vars for Webex bot
 WEBEX_BOT_TOKEN = os.getenv('WEBEX_BOT_TOKEN')
-if not WEBEX_BOT_TOKEN: 
+if not WEBEX_BOT_TOKEN:
     print("Webex bot access token is missing. Provide with WEBEX_BOT_TOKEN environment variable.")
     raise SystemExit()
 WEBEX_BOT_ROOM_ID = os.getenv('WEBEX_BOT_ROOM_ID')
-if not WEBEX_BOT_ROOM_ID: 
+if not WEBEX_BOT_ROOM_ID:
     print("Webex bot room ID is missing. Provide with WEBEX_BOT_ROOM_ID environment variable.")
     raise SystemExit()
 
@@ -44,14 +44,14 @@ webAppPublicUrl = ""
 try:
     r = requests.get("http://localhost:4040/api/tunnels")
     webAppPublicUrl = r.json()['tunnels'][0]['public_url']
-except:
+except Exception:
     # do nothing
     pass
 # try to get the AWS URL (prod)
 try:
     r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname")
     webAppPublicUrl = r.text
-except:
+except Exception:
     # do nothing
     pass
 

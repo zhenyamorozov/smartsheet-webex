@@ -18,21 +18,22 @@ import webexteamssdk
 import smartsheet
 
 # my imports
-from param_store import *
-from exceptions import *
+from param_store import getSmartsheetId, getWebexIntegrationToken
+from exceptions import ParameterStoreError, SmartsheetInitError, SmartsheetColumnMappingError, WebexIntegrationInitError, WebexBotInitError
+
 
 def loadParameters():
     """
-        First step in the scheduling process. 
-        
-        Loads credentials and other parameters from env variables. 
-        Loads other parameters from Parameter Store. 
+        First step in the scheduling process.
+
+        Loads credentials and other parameters from env variables.
+        Loads other parameters from Parameter Store.
         Checks if all required values are provided.
         Changes global variables.
-        
+
         Args:
             None
-        
+
         Returns:
             None
     """
@@ -52,11 +53,11 @@ def loadParameters():
         logger.fatal("Smartsheet access token is missing. Provide with SMARTSHEET_ACCESS_TOKEN environment variable.")
         raise SystemExit()
     WEBEX_INTEGRATION_CLIENT_ID = os.getenv('WEBEX_INTEGRATION_CLIENT_ID')
-    if not WEBEX_INTEGRATION_CLIENT_ID: 
+    if not WEBEX_INTEGRATION_CLIENT_ID:
         logger.fatal("Webex Integration Client ID is missing. Provide with WEBEX_INTEGRATION_CLIENT_ID environment variable.")
         raise SystemExit()
     WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv('WEBEX_INTEGRATION_CLIENT_SECRET')
-    if not WEBEX_INTEGRATION_CLIENT_SECRET: 
+    if not WEBEX_INTEGRATION_CLIENT_SECRET:
         logger.fatal("Webex Integration Client Secret is missing. Provide with WEBEX_INTEGRATION_CLIENT_SECRET environment variable.")
         raise SystemExit()
     WEBEX_BOT_TOKEN = os.getenv('WEBEX_BOT_TOKEN')
@@ -64,7 +65,7 @@ def loadParameters():
         logger.fatal("Webex Bot access token is missing. Provide with WEBEX_BOT_TOKEN environment variable.")
         raise SystemExit()
     WEBEX_BOT_ROOM_ID = os.getenv('WEBEX_BOT_ROOM_ID')
-    if not WEBEX_BOT_ROOM_ID: 
+    if not WEBEX_BOT_ROOM_ID:
         logger.fatal("Webex Bot room ID is missing. It is required for logging and control. Provide with WEBEX_BOT_ROOM_ID environment variable.")
         raise SystemExit()
     logger.info("Required parameters are loaded from env.")
@@ -87,35 +88,35 @@ def loadParameters():
 
     }
     SMARTSHEET_PARAMS['nicknames'] = {}
-    if  os.getenv("SMARTSHEET_PARAMS"):
+    if os.getenv("SMARTSHEET_PARAMS"):
         logger.info("Loading optional Smartsheet parameters from env.")
         try:
             columns = json.loads(os.getenv('SMARTSHEET_PARAMS'))['columns']
             for i in columns:
                 SMARTSHEET_PARAMS['columns'][i] = columns[i]
             logger.info("Optional Smartsheet column parameters are loaded from env.")
-        except:
+        except Exception:
             logger.info("Could not load optional Smartsheet column parameters.")
         try:
             SMARTSHEET_PARAMS['nicknames'] = json.loads(os.getenv('SMARTSHEET_PARAMS'))['nicknames']
             logger.info("Optional Smartsheet nickname parameters are loaded from env.")
-        except:
+        except Exception:
             logger.info("Could not load optional Smartsheet nickname parameters.")
 
     else:
         logger.info("No optional Smartsheet parameters set in env.")
 
     WEBEX_INTEGRATION_PARAMS = {}
-    if  os.getenv('WEBEX_INTEGRATION_PARAMS'):
+    if os.getenv('WEBEX_INTEGRATION_PARAMS'):
         logger.info("Loading optional Webex Integration parameters from env.")
         try:
             WEBEX_INTEGRATION_PARAMS = json.loads(os.getenv('WEBEX_INTEGRATION_PARAMS'))
             logger.info("Optional Webex Integration parameters are loaded from env.")
         except Exception as ex:
-            logger.info("Could not load optional Webex Integration parameters. "+str(ex))
+            logger.info("Could not load optional Webex Integration parameters. " + str(ex))
     else:
         logger.info("No optional Webex Integration parameters set in env.")
-    
+
 
 def initSmartsheet():
     """Initializes access to Smartsheet.
@@ -138,8 +139,8 @@ def initSmartsheet():
     try:
         sheetId = getSmartsheetId()
     except Exception as ex:
-        raise ParameterStoreError("Could not read Smartsheet ID from parameter store. "+str(ex))
-    
+        raise ParameterStoreError("Could not read Smartsheet ID from parameter store. " + str(ex))
+
     try:
         ssApi = smartsheet.Smartsheet()
         ssApi.errors_as_exceptions(True)
@@ -148,7 +149,7 @@ def initSmartsheet():
         ssSheet = ssApi.Sheets.get_sheet(sheetId, level=2, include=['objectValue'])
         # level=1 and include=['objectValue'] are required to receive more detailed responses from Smartsheet API, including MULTI_CONTACT
     except Exception as ex:
-        raise SmartsheetInitError("Could not initialize Smartsheet. Check if Smartsheet ID is correct. "+str(ex))
+        raise SmartsheetInitError("Could not initialize Smartsheet. Check if Smartsheet ID is correct. " + str(ex))
 
     columns = {}
     # Build column map for later reference - translates column names to column id
@@ -158,7 +159,7 @@ def initSmartsheet():
         if SMARTSHEET_PARAMS['columns'][column] in columns:
             ssColumnMap[column] = columns[SMARTSHEET_PARAMS['columns'][column]]
     # check if all required columns are present in the smartsheet
-    requiredColumns = [ 'create', 'startdate', 'starttime', 'title', 'webinarId']
+    requiredColumns = ['create', 'startdate', 'starttime', 'title', 'webinarId']
     columnsDiff = set(requiredColumns) - set(ssColumnMap.keys())
     if columnsDiff:
         raise SmartsheetColumnMappingError("Some required column(s) is(are) missing in your smartsheet: " + ", ".join(columnsDiff))
@@ -174,7 +175,7 @@ def initWebexIntegration():
 
         Returns:
             webexApi: webexteamssdk.WebexTeamsAPI object to control access to Webex Integration
-        
+
         Raises:
             WebexIntegrationInitError
     """
@@ -207,7 +208,7 @@ def initWebexBot():
         assert botApi.people.me().type == "bot"
         # check if the bot can access the logging room
         assert botApi.rooms.get(WEBEX_BOT_ROOM_ID)
-    except:
+    except Exception:
         raise WebexBotInitError()
 
     return botApi
@@ -240,16 +241,17 @@ def getWebinarProperty(propertyName, ssRow):
         else:
             propertyValue = str(cell.value).strip()
             return propertyValue
-    except:
+    except Exception:
         pass
     # if property value is specified in env WEBEX_INTEGRATION_PARAMS, return it
     try:
         propertyValue = WEBEX_INTEGRATION_PARAMS[propertyName]
         return propertyValue
-    except:
+    except Exception:
         pass
     # otherwise, return None
     return None
+
 
 def stringContactsToDict(contacts):
     """Returns dict of contacts from string of contacts
@@ -271,15 +273,17 @@ def stringContactsToDict(contacts):
             # email not specified
             try:
                 _res[SMARTSHEET_PARAMS['nicknames'][contact[1].strip().lower()]['email']] = SMARTSHEET_PARAMS['nicknames'][contact[1].strip().lower()]['name']
-            except:
+            except Exception:
                 pass
 
     return _res
 
-        
+
 if __name__ == "__main__":
 
-    ### Initialize logging
+    #
+    #   Initialize logging
+    #
     logger = logging.getLogger(__name__)
     # Logger usage:
     # logger.fatal("Message in case of a fatal error causing SystemExit")
@@ -292,37 +296,39 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
 
     # log handler for brief log
-    briefLogString = io.StringIO() 
-    briefLogHandler = logging.StreamHandler(briefLogString) 
+    briefLogString = io.StringIO()
+    briefLogHandler = logging.StreamHandler(briefLogString)
     briefLogHandler.setLevel(logging.WARNING)
     logger.addHandler(briefLogHandler)
 
     # log handler for full log
-    fullLogString = io.StringIO() 
-    fullLogHandler = logging.StreamHandler(fullLogString) 
+    fullLogString = io.StringIO()
+    fullLogHandler = logging.StreamHandler(fullLogString)
     fullLogHandler.setLevel(logging.INFO)
     logger.addHandler(fullLogHandler)
 
     # log handler for console
-    consoleLogHandler = logging.StreamHandler() 
+    consoleLogHandler = logging.StreamHandler()
     consoleLogHandler.setLevel(logging.DEBUG)
     logger.addHandler(consoleLogHandler)
 
     logger.warning("Starting...")
 
-
-    ### Load env variables and check if all env variables are provided
+    #
+    # Load env variables and check if all env variables are provided
+    #
     logger.info("Loading parameters and checking if all required parameters are provided.")
     loadParameters()
     logger.info("Required parameters are successfully loaded.")
 
-
-    ### Initialize access to Smartsheet
+    #
+    # Initialize access to Smartsheet
+    #
     logger.info("Initializing access to Smartsheet.")
     try:
         ssApi, ssSheet, ssColumnMap = initSmartsheet()
-    except ParameterStoreError as ex: 
-        logger.fatal("Could not read Smartsheet Sheet ID from Parameter Store. Check local AWS configuration. Service reported: "+str(ex))
+    except ParameterStoreError as ex:
+        logger.fatal("Could not read Smartsheet Sheet ID from Parameter Store. Check local AWS configuration. Service reported: " + str(ex))
         raise SystemExit()
     except SmartsheetInitError as ex:
         logger.fatal("Smartsheet API connection error. " + str(ex))
@@ -335,68 +341,72 @@ if __name__ == "__main__":
         raise SystemExit()
     logger.info("Successfully initialized access to Smartsheet.")
 
-
-    ### Initialize access to Webex Integration
+    #
+    # Initialize access to Webex Integration
+    #
     logger.info("Initializing access to Webex Integration.")
     try:
         webexApi = initWebexIntegration()
-    except ParameterStoreError as ex: 
-        logger.fatal("Could not read Webex Integration tokens from Parameter Store. Check local AWS configuration. Service reported: "+str(ex))
+    except ParameterStoreError as ex:
+        logger.fatal("Could not read Webex Integration tokens from Parameter Store. Check local AWS configuration. Service reported: " + str(ex))
         raise SystemExit()
     except WebexIntegrationInitError as ex:
-        logger.fatal("Could not initialize Webex Integration. Service reported: "+str(ex))
+        logger.fatal("Could not initialize Webex Integration. Service reported: " + str(ex))
         raise SystemExit()
     except Exception as ex:
-        logger.fatal("Could not initialize Webex Integration. Service reported: "+str(ex))
+        logger.fatal("Could not initialize Webex Integration. Service reported: " + str(ex))
         raise SystemExit()
     logger.info("Successfully initialized access to Webex Integration.")
 
-
-    ### Initialize access to Webex bot for logging and control
+    #
+    # Initialize access to Webex bot for logging and control
+    #
     logger.info("Initializing access to Webex bot.")
     try:
         botApi = initWebexBot()
     except Exception as ex:
-        logger.fatal("Could not initialize Webex bot. Service reported: "+str(ex))
+        logger.fatal("Could not initialize Webex bot. Service reported: " + str(ex))
         raise SystemExit()
     logger.info("Successfully initialized access to Webex bot.")
 
 
-    ### loop over the smartsheet
+    #
+    # Loop over the smartsheet
+    #
     for ssRow in ssSheet.rows:
-        
+
         if str(ssRow.get_column(ssColumnMap['create']).value).lower() == "yes":
             event = {}
 
-            logger.info("") # insert empty line into log
-            # gather all webinar properties
+            logger.info("")    # insert empty line into log
 
+            # gather all webinar properties
             event['title'] = getWebinarProperty('title', ssRow) or "Generic Webinar Title"
             try:
                 event['agenda'] = getWebinarProperty('agenda', ssRow)
                 event['scheduledType'] = getWebinarProperty('scheduledType', ssRow) or 'webinar'
                 event['startdatetime'] = datetime.strptime(
-                    ssRow.get_column(ssColumnMap['startdate']).value 
-                    + " " + 
+                    ssRow.get_column(ssColumnMap['startdate']).value
+                    + " " +
                     ssRow.get_column(ssColumnMap['starttime']).value,
                     "%Y-%m-%d %H:%M"
                 )
-                event['startdatetime'] = event['startdatetime'].replace(tzinfo=timezone.utc) # set Zulu time (UTC timezone), Smartsheet always returns dates in UTC
-                event['duration'] = getWebinarProperty('duration', ssRow) or 60 # by default, set duration to 1 hour
-                event['duration'] = int(float(event['duration'])) # make sure it's integer
-                event['enddatetime'] = event["startdatetime"]+timedelta(minutes=event['duration'])
+                event['startdatetime'] = event['startdatetime'].replace(tzinfo=timezone.utc)    # set Zulu time (UTC timezone), Smartsheet always returns dates in UTC
+                event['duration'] = getWebinarProperty('duration', ssRow) or 60    # by default, set duration to 1 hour
+                event['duration'] = int(float(event['duration']))    # make sure it's integer
+                event['enddatetime'] = event["startdatetime"] + timedelta(minutes=event['duration'])
                 event['timezone'] = getWebinarProperty('timezone', ssRow) or "UTC"
-                event['siteUrl'] = getWebinarProperty('siteUrl', ssRow) # if not set, a Webex default will be used
-                event['password'] = getWebinarProperty('ppassword', ssRow) # by default, randomly generated by Webex            
-                event['panelistPassword'] = getWebinarProperty('panelistPassword', ssRow) # by default, randomly generated by Webex
-                event['reminderTime'] = getWebinarProperty('reminderTime', ssRow) or 30 # by default, set reminder to go 30 minutes before the session
+                event['siteUrl'] = getWebinarProperty('siteUrl', ssRow)    # if not set, a Webex default will be used
+                event['password'] = getWebinarProperty('password', ssRow)    # by default, randomly generated by Webex
+                event['panelistPassword'] = getWebinarProperty('panelistPassword', ssRow)    # by default, randomly generated by Webex
+                event['reminderTime'] = getWebinarProperty('reminderTime', ssRow) or 30    # by default, set reminder to go 30 minutes before the session
                 event['registration'] = getWebinarProperty('registration', ssRow) or \
                     {
                         'autoAcceptRequest': True,
                         'requireFirstName': True,
                         'requireLastName': True,
                         'requireEmail': True
-                    } # registration is enabled by default
+                    }    # registration is enabled by default
                 event['cohosts'] = getWebinarProperty('cohosts', ssRow)
                 if not isinstance(event['cohosts'], dict):
                     event['cohosts'] = stringContactsToDict(event['cohosts'])
@@ -408,27 +418,26 @@ if __name__ == "__main__":
                 logger.error("Failed to create/update \"{}\". Some webinar property is not valid: {}".format(event['title'], ex))
                 continue
 
-            #dev
+            # dev
             # import random
             # _rnd = "".join(random.choice([chr(c) for c in range(ord('A'), ord('Z')+1)]) for l in range(3))
             # event["title"] = _rnd+" "+event["title"]
-            #/dev
+            # /dev
 
             if not event['id']:
                 # create event
-                # logger.warning("Will create webinar \"{}\"".format(event['title']))
                 try:
                     w = webexApi.meetings.create(
-                        title = event['title'],
-                        agenda = event['agenda'],
+                        title=event['title'],
+                        agenda=event['agenda'],
                         scheduledType=event['scheduledType'],
-                        start = str(event["startdatetime"]),
-                        end = str(event["enddatetime"]),
-                        timezone = event['timezone'],
-                        siteUrl = event['siteUrl'],
-                        password = event['password'],
-                        panelistPassword = event['panelistPassword'],
-                        reminderTime = event['reminderTime'],
+                        start=str(event["startdatetime"]),
+                        end=str(event["enddatetime"]),
+                        timezone=event['timezone'],
+                        siteUrl=event['siteUrl'],
+                        password=event['password'],
+                        panelistPassword=event['panelistPassword'],
+                        reminderTime=event['reminderTime'],
                         registration=event['registration']
                     )
                     logger.warning("Created webinar {}".format(w.title))
@@ -436,14 +445,11 @@ if __name__ == "__main__":
                     logger.error("Failed to create webinar \"{}\". API returned error: {}".format(event['title'], ex))
                     try:
                         for err in ex.details['errors']:
-                            logger.error("  "+err['description'])
-                    except:
+                            logger.error("  " + err['description'])
+                    except Exception:
                         pass
                     continue
                 pass
-
-                # _ = webexApi.meetings.get(w.id)
-                # print(w.__dict__ == _.__dict__) # returned objects are identical by attribute values
 
                 # update newly created webinar ID and info back into Smartsheet
                 try:
@@ -454,7 +460,7 @@ if __name__ == "__main__":
                             'value': w.id
                         }))
                     else:
-                        logger.error("No column in Smartsheet to save Webinar ID.") # critical for app logic
+                        logger.error("No column in Smartsheet to save Webinar ID.")    # critical for app logic
                     if 'attendeeUrl' in ssColumnMap:
                         newCells.append(ssApi.models.Cell({
                             'column_id': ssColumnMap['attendeeUrl'],
@@ -485,46 +491,46 @@ if __name__ == "__main__":
                     w = webexApi.meetings.get(event['id'])
 
                     needUpdateSendEmail = \
-                           event['title'] != w.title \
+                        event['title'] != w.title \
                         or event['startdatetime'] != datetime.fromisoformat(w.start) \
                         or event['enddatetime'] != datetime.fromisoformat(w.end)
 
-                    needUpdate = needUpdateSendEmail \
+                    needUpdate = \
+                        needUpdateSendEmail \
                         or event['agenda'] != w.agenda
 
                     if needUpdate:
                         w = webexApi.meetings.update(
-                            meetingId = event['id'],
-                            title = event['title'],
-                            agenda = event['agenda'],
+                            meetingId=event['id'],
+                            title=event['title'],
+                            agenda=event['agenda'],
                             scheduledType=event['scheduledType'],
-                            start = str(event["startdatetime"]),
-                            end = str(event["enddatetime"]),
-                            # timezone = event['timezone'],
-                            # siteUrl = event['siteUrl'],
-                            password = event['password'] or w.password, # password is required for update()
-                            panelistPassword = event['panelistPassword'],
-                            # reminderTime = event['reminderTime'],
+                            start=str(event["startdatetime"]),
+                            end=str(event["enddatetime"]),
+                            # timezone=event['timezone'],
+                            # siteUrl=event['siteUrl'],
+                            password=event['password'] or w.password,    # password is required for update()
+                            panelistPassword=event['panelistPassword'],
+                            # reminderTime=event['reminderTime'],
                             # registration=event['registration'],
-                            sendEmail = needUpdateSendEmail
+                            sendEmail=needUpdateSendEmail
                         )
                         logger.warning("Updated webinar information: {}".format(w.title))
                 except Exception as ex:
                     logger.error("Failed to update webinar \"{}\". API returned error: {}".format(event['title'], ex))
                     try:
                         for err in ex.details['errors']:
-                            logger.error("  "+err['description'])
-                    except:
+                            logger.error("  " + err['description'])
+                    except Exception:
                         pass
                     continue
-                
+
                 # update webinar registrant count into Smartsheet
                 try:
                     # TODO complete when list-meeting-registrants endpoint is added to SDK
                     pass
 
-
-                    registrantCount = 112 #placeholder
+                    registrantCount = 112    # placeholder
 
                     newCells = []
                     if 'registrantCount' in ssColumnMap:
@@ -551,76 +557,76 @@ if __name__ == "__main__":
                 currentInvitees = {}
                 for i in webexApi.meeting_invitees.list(w.id):
                     if i.panelist or i.coHost:
-                        currentInvitees[i.email] = i    
+                        currentInvitees[i.email] = i
             except Exception as ex:
                 logger.error("Failed to process invitees for webinar \"{}\". API returned error: {}".format(event['title'], ex))
             else:
 
                 # process panelists and cohosts
-                eventInvitees = event['panelists'] | event['cohosts'] # merged dicts: https://peps.python.org/pep-0584/
+                eventInvitees = event['panelists'] | event['cohosts']    # merged dicts: https://peps.python.org/pep-0584/
                 for email in eventInvitees:
                     if email in currentInvitees:
                         # already invited
                         if eventInvitees[email] != currentInvitees[email].displayName \
-                            or (email in event['cohosts']) != currentInvitees[email].coHost:
+                                or (email in event['cohosts']) != currentInvitees[email].coHost:
                             # name or status changed
                             try:
                                 r = webexApi.meeting_invitees.update(
-                                    meetingInviteeId = currentInvitees[email].id,
-                                    email = email,
-                                    displayName = eventInvitees[email],
-                                    panelist = email in event['panelists'] or email in event['cohosts'], # cohosts must also be panelists as per Webex API behavior
-                                    coHost = email in event['cohosts'],
-                                    sendEmail = True
+                                    meetingInviteeId=currentInvitees[email].id,
+                                    email=email,
+                                    displayName=eventInvitees[email],
+                                    panelist=email in event['panelists'] or email in event['cohosts'],    # cohosts must also be panelists as per Webex API behavior
+                                    coHost=email in event['cohosts'],
+                                    sendEmail=True
                                 )
                             except Exception as ex:
                                 logger.error("Failed to update invitee \"{}\" for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
-                        del currentInvitees[email] # remove processed from the uninvite list
+                        del currentInvitees[email]    # remove processed from the uninvite list
                     else:
                         # new, need to invite
                         try:
                             r = webexApi.meeting_invitees.create(
-                                meetingId = w.id, 
-                                email = email,
-                                displayName = eventInvitees[email],
-                                panelist = email in event['panelists'] or email in event['cohosts'], # cohosts must also be panelists as per Webex API behavior
-                                coHost = email in event['cohosts'],
-                                sendEmail = True
-                            )                    
+                                meetingId=w.id,
+                                email=email,
+                                displayName=eventInvitees[email],
+                                panelist=email in event['panelists'] or email in event['cohosts'],    # cohosts must also be panelists as per Webex API behavior
+                                coHost=email in event['cohosts'],
+                                sendEmail=True
+                            )
                         except Exception as ex:
                             logger.error("Failed to create invitee \'{}\' for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
                 # uninvite panelists/cohosts who remained in the uninvite list
                 for email in currentInvitees:
                     try:
                         r = webexApi.meeting_invitees.delete(
-                            meetingInviteeId = currentInvitees[email].id
+                            meetingInviteeId=currentInvitees[email].id
                         )
                     except Exception as ex:
                         logger.error("Failed to delete invitee \'{}\'for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
 
-    #/for
-        
+    # /for
 
-    ### Process logs and close logging
+    #
+    # Process logs and close logging
+    #
     try:
         with tempfile.NamedTemporaryFile(
-            prefix=datetime.utcnow().strftime("%Y%m%d-%H%M%S "), 
-            suffix=".txt", 
-            mode="wt", 
+            prefix=datetime.utcnow().strftime("%Y%m%d-%H%M%S "),
+            suffix=".txt",
+            mode="wt",
             delete=False
         ) as tmp:
             tmp.write(fullLogString.getvalue())
-        
+
         botApi.messages.create(
-            roomId = WEBEX_BOT_ROOM_ID,
-            text = "Done creating and updating webinars. Full log attached. Brief log follows.\n\n" + briefLogString.getvalue(),
-            files = [tmp.name]
+            roomId=WEBEX_BOT_ROOM_ID,
+            text="Done creating and updating webinars. Full log attached. Brief log follows.\n\n" + briefLogString.getvalue(),
+            files=[tmp.name]
         )
 
         os.remove(tmp.name)
     except Exception as ex:
-        logger.error("Failed to post log into Webex bot room. "+str(ex))
+        logger.error("Failed to post log into Webex bot room. " + str(ex))
 
     briefLogString.close()
     fullLogString.close()
-
