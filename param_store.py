@@ -67,7 +67,6 @@ def getWebexIntegrationToken(webex_integration_client_id, webex_integration_clie
     """
 
     # read access tokens from Parameter Store
-
     ssm_client = boto3.client("ssm")
     ssmStoredParameter = ssm_client.get_parameter(
         Name="/smartsheet-webex/webexTokens",
@@ -87,7 +86,7 @@ def getWebexIntegrationToken(webex_integration_client_id, webex_integration_clie
             client_secret=webex_integration_client_secret,
             refresh_token=refreshToken
         )
-        # save the new access tokin to the Parameter Store
+        # save the new access token to the Parameter Store
         saveWebexIntegrationTokens(dict(newTokens.json_data))
 
         accessToken = newTokens.access_token

@@ -12,6 +12,8 @@ import os
 import urllib.parse
 from datetime import datetime
 
+import webexteamssdk
+
 from webexteamssdk import WebexTeamsAPI
 from webexteamssdk.models.cards.card import AdaptiveCard
 from webexteamssdk.models.cards.inputs import *
@@ -365,22 +367,29 @@ def webhook():
 
         # "Authorize Webex" action
         if action.type == "submit" and action.inputs['act'] == "authorize webex":
-            # get a fresh Webex Integration access token
-            access_token = getWebexIntegrationToken(
-                webex_integration_client_id=WEBEX_INTEGRATION_CLIENT_ID,
-                webex_integration_client_secret=WEBEX_INTEGRATION_CLIENT_SECRET
-            )
+            try:
+                # get a fresh Webex Integration access token
+                access_token = getWebexIntegrationToken(
+                    webex_integration_client_id=WEBEX_INTEGRATION_CLIENT_ID,
+                    webex_integration_client_secret=WEBEX_INTEGRATION_CLIENT_SECRET
+                )
 
-            # get information about the current authorized Webex user
-            webexApi = webexteamssdk.WebexTeamsAPI(access_token)
-            webexMe = webexApi.people.me()
+                # get information about the current authorized Webex user
+                webexApi = webexteamssdk.WebexTeamsAPI(access_token)
+                webexMe = webexApi.people.me()
+                webexEmail = webexMe.emails[0]
+                webexDisplayName = webexMe.displayName
+            except Exception as ex:
+                # haven't been authorized yet
+                webexEmail = ""
+                webexDisplayName = "Not authorized yet"
 
             if os.getenv("FLASK_ENV") == "development":
                 # dev
                 authUrl = "http://localhost:5000" + "/auth"
             else:
                 # prod
-                authUrl = url_for('auth', _external=True)
+                authUrl = url_for("auth", _external=True)
 
             card = AdaptiveCard(
                 fallbackText="Adaptive cards feature is required to use me.",
@@ -398,11 +407,11 @@ def webhook():
                         facts=[
                             Fact(
                                 title="Name",
-                                value=webexMe.displayName
+                                value=webexDisplayName
                             ),
                             Fact(
                                 title="Email",
-                                value=webexMe.emails[0]
+                                value=webexEmail
                             )
                         ]
                     )
