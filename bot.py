@@ -355,7 +355,7 @@ def webhook():
                         ssApi.Sheets.update_column(newSheet.id_, col_id, col)
 
                 botApi.messages.create(
-                    text="Here is your newly created Smartsheet template. Don't forget to set it as the current working template.\n{}".format(newSheet.permalink),
+                    text="Here is your newly created Smartsheet template. Don't forget to set it as the current working smartsheet.\n{}".format(newSheet.permalink),
                     roomId=WEBEX_BOT_ROOM_ID
                 )
 

@@ -501,8 +501,8 @@ if __name__ == "__main__":
 
                     needUpdateSendEmail = \
                         event['title'] != w.title \
-                        or event['startdatetime'] != datetime.fromisoformat(w.start) \
-                        or event['enddatetime'] != datetime.fromisoformat(w.end)
+                        or event['startdatetime'] != datetime.fromisoformat(w.start.rstrip("Z")) \
+                        or event['enddatetime'] != datetime.fromisoformat(w.end.rstrip("Z"))    # fromisoformat() cannot process ISO-8601 strings prior to Python 3.11, thus remove the 'Z'
 
                     needUpdate = \
                         needUpdateSendEmail \
@@ -623,6 +623,7 @@ if __name__ == "__main__":
             prefix=datetime.utcnow().strftime("%Y%m%d-%H%M%S "),
             suffix=".txt",
             mode="wt",
+            encoding="utf-8",
             delete=False
         ) as tmp:
             tmp.write(fullLogString.getvalue())
