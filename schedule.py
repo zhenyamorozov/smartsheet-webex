@@ -423,8 +423,9 @@ if __name__ == "__main__":
                 if not isinstance(event['panelists'], dict):
                     event['panelists'] = stringContactsToDict(event['panelists'])
                 event['id'] = ssRow.get_column(ssColumnMap['webinarId']).value
+                logger.info("Processing \"{}\"".format(event['title']))
             except Exception as ex:
-                logger.error("Failed to create/update \"{}\". Some webinar property is not valid: {}".format(event['title'], ex))
+                logger.error("Failed to process \"{}\". The webinar property is not valid: {}".format(event['title'], ex))
                 continue
 
             # dev
@@ -473,7 +474,7 @@ if __name__ == "__main__":
                     if 'attendeeUrl' in ssColumnMap:
                         newCells.append(ssApi.models.Cell({
                             'column_id': ssColumnMap['attendeeUrl'],
-                            'value': w.webLink
+                            'value': "Manually copy the Attendee URL from Webex" #w.webLink     TODO: implement Attendee URL once it becomes available in API
                         }))
                     else:
                         logger.info("No column in Smartsheet to save Attendee URL.")
@@ -501,8 +502,8 @@ if __name__ == "__main__":
 
                     needUpdateSendEmail = \
                         event['title'] != w.title \
-                        or event['startdatetime'] != datetime.fromisoformat(w.start.rstrip("Z")) \
-                        or event['enddatetime'] != datetime.fromisoformat(w.end.rstrip("Z"))    # fromisoformat() cannot process ISO-8601 strings prior to Python 3.11, thus remove the 'Z'
+                        or event['startdatetime'] != datetime.fromisoformat(w.start) \
+                        or event['enddatetime'] != datetime.fromisoformat(w.end)    # fromisoformat() cannot process ISO-8601 strings prior to Python 3.11, thus remove the 'Z'
 
                     needUpdate = \
                         needUpdateSendEmail \
@@ -539,7 +540,7 @@ if __name__ == "__main__":
                     # TODO complete when list-meeting-registrants endpoint is added to SDK
                     pass
 
-                    registrantCount = 112    # placeholder
+                    registrantCount = 0    # placeholder
 
                     newCells = []
                     if 'registrantCount' in ssColumnMap:
