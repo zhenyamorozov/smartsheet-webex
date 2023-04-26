@@ -223,7 +223,7 @@ def initWebexBot():
     return botApi
 
 
-def getWebinarProperty(propertyName, ssRow):
+def getWebinarProperty(propertyName, ssRow=None):
     """Returns value for webinar property taken from a source, in order of piority:
         1. If propertyName-associated column exists in Smartsheet and cell is not empty,
             return its value
@@ -267,7 +267,7 @@ def stringContactsToDict(contacts):
 
         Args: contacts(str): Comma-separated list of contacts, each contact represented as "name <email>".
             If name is not specified, 'Panelist' is used.
-            If email is not specified, function will try to match contact by nickname configured in env.
+            If email is not specified, the function will try to match contact by nickname configured in env.
 
         Returns:
             _res: dict of contacts {email: name}
@@ -425,12 +425,20 @@ if __name__ == "__main__":
                         'requireLastName': True,
                         'requireEmail': True
                     }    # registration is enabled by default
+
+                # add invited cohosts
                 event['cohosts'] = getWebinarProperty('cohosts', ssRow)
                 if not isinstance(event['cohosts'], dict):
                     event['cohosts'] = stringContactsToDict(event['cohosts'])
+                # add invited panelists
                 event['panelists'] = getWebinarProperty('panelists', ssRow)
                 if not isinstance(event['panelists'], dict):
                     event['panelists'] = stringContactsToDict(event['panelists'])
+                # add panelists which are always invited
+                alwaysInvitePanelists = getWebinarProperty('alwaysInvitePanelists')
+                alwaysInvitePanelists = stringContactsToDict(alwaysInvitePanelists)
+                event['panelists'].update(alwaysInvitePanelists)
+
                 event['id'] = ssRow.get_column(ssColumnMap['webinarId']).value
                 logger.info("Processing \"{}\"".format(event['title']))
             except Exception as ex:
@@ -564,9 +572,9 @@ if __name__ == "__main__":
                     newRow.id = ssRow.id
                     newRow.cells.extend(newCells)
                     ss = ssApi.Sheets.update_rows(ssSheet.id, [newRow])
-                    logger.info("Updated webinar Registration Count into Smartsheet.")
+                    logger.info("Refreshed webinar Registration Count in Smartsheet.")
                 except Exception as ex:
-                    logger.error("Failed to update webinar Registration Count into Smartsheet. API returned error: {}".format(ex))
+                    logger.error("Failed to refresh webinar Registration Count in Smartsheet. API returned error: {}".format(ex))
 
             # update invitees (panelists and cohosts) for created or updated event
             try:
