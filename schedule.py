@@ -557,7 +557,7 @@ if __name__ == "__main__":
                     # TODO complete when list-meeting-registrants endpoint is added to SDK
                     pass
 
-                    registrantCount = 0    # placeholder
+                    registrantCount = sum(1 for _ in webexApi.meeting_invitees.list(w.id))
 
                     newCells = []
                     if 'registrantCount' in ssColumnMap:
@@ -582,7 +582,7 @@ if __name__ == "__main__":
                 # also serves as an "uninvite list" - checked invitees are removed from the list
                 # if there are any remaining, they will be uninvited
                 currentInvitees = {}
-                for i in webexApi.meeting_invitees.list(w.id):
+                for i in webexApi.meeting_invitees.list(w.id, panelist=True):
                     if i.panelist or i.coHost:
                         currentInvitees[i.email] = i
             except Exception as ex:
@@ -590,6 +590,12 @@ if __name__ == "__main__":
             else:
 
                 # process panelists and cohosts
+
+                if getWebinarProperty('noCohosts'):
+                    # treat chohosts as panelists
+                    event['panelists'].update(event['cohosts'])
+                    event['cohosts'] = {}
+
                 eventInvitees = event['panelists'] | event['cohosts']    # merged dicts: https://peps.python.org/pep-0584/
                 for email in eventInvitees:
                     if email in currentInvitees:
@@ -632,6 +638,8 @@ if __name__ == "__main__":
                         logger.error("Failed to delete invitee \'{}\'for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
 
     # /for
+    
+    logger.warning("Done.")
 
     #
     # Process logs and close logging
