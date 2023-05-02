@@ -425,6 +425,8 @@ if __name__ == "__main__":
                         'requireLastName': True,
                         'requireEmail': True
                     }    # registration is enabled by default
+                event['enabledJoinBeforeHost'] = getWebinarProperty('enabledJoinBeforeHost', ssRow)   # let attendees join before host
+                event['joinBeforeHostMinutes'] = getWebinarProperty('joinBeforeHostMinutes', ssRow)   # set webinar to start minutes before the scheduled start time
 
                 # add invited cohosts
                 event['cohosts'] = getWebinarProperty('cohosts', ssRow)
@@ -465,7 +467,9 @@ if __name__ == "__main__":
                         password=event['password'],
                         panelistPassword=event['panelistPassword'],
                         reminderTime=event['reminderTime'],
-                        registration=event['registration']
+                        registration=event['registration'],
+                        enabledJoinBeforeHost=event['enabledJoinBeforeHost'],
+                        joinBeforeHostMinutes=event['joinBeforeHostMinutes']
                     )
                     logger.warning("Created webinar {}".format(w.title))
                 except Exception as ex:
@@ -540,6 +544,8 @@ if __name__ == "__main__":
                             panelistPassword=event['panelistPassword'],
                             # reminderTime=event['reminderTime'],
                             # registration=event['registration'],
+                            enabledJoinBeforeHost=event['enabledJoinBeforeHost'],
+                            joinBeforeHostMinutes=event['joinBeforeHostMinutes'],                            
                             sendEmail=needUpdateSendEmail
                         )
                         logger.warning("Updated webinar information: {}".format(w.title))
@@ -552,7 +558,7 @@ if __name__ == "__main__":
                         pass
                     continue
 
-                # update webinar registrant count into Smartsheet
+                # refresh webinar registrant count in Smartsheet
                 try:
                     # TODO complete when list-meeting-registrants endpoint is added to SDK
                     pass
