@@ -618,6 +618,7 @@ if __name__ == "__main__":
                                     coHost=email in event['cohosts'],
                                     sendEmail=True
                                 )
+                                logger.info("Updated invitee {} <{}>".format(eventInvitees[email], email))
                             except Exception as ex:
                                 logger.error("Failed to update invitee \"{}\" for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
                         del currentInvitees[email]    # remove processed from the uninvite list
@@ -632,6 +633,7 @@ if __name__ == "__main__":
                                 coHost=email in event['cohosts'],
                                 sendEmail=True
                             )
+                            logger.info("Invited {} <{}>".format(eventInvitees[email], email))
                         except Exception as ex:
                             logger.error("Failed to create invitee \'{}\' for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
                 # uninvite panelists/cohosts who remained in the uninvite list
@@ -640,8 +642,9 @@ if __name__ == "__main__":
                         r = webexApi.meeting_invitees.delete(
                             meetingInviteeId=currentInvitees[email].id
                         )
+                        logger.info("Uninvited {} <{}>".format(currentInvitees[email].displayName, email))
                     except Exception as ex:
-                        logger.error("Failed to delete invitee \'{}\'for webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
+                        logger.error("Failed to delete invitee \"{}\" from webinar \"{}\". API returned error: {}".format(email, event['title'], ex))
 
     # /for
     
