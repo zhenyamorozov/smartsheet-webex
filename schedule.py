@@ -441,7 +441,7 @@ if __name__ == "__main__":
                 alwaysInvitePanelists = stringContactsToDict(alwaysInvitePanelists)
                 event['panelists'].update(alwaysInvitePanelists)
 
-                event['id'] = str(int(ssRow.get_column(ssColumnMap['webinarId']).value))
+                event['id'] = ssRow.get_column(ssColumnMap['webinarId']).value
                 logger.info("Processing \"{}\"".format(event['title']))
             except Exception as ex:
                 logger.error("Failed to process \"{}\". The webinar property is not valid: {}".format(event['title'], ex))
