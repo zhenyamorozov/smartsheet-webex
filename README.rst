@@ -10,16 +10,19 @@ It is easy to use:
 Collaborate with your team on webinar planning. When ready for creation, check **Create=yes**
 
 .. image:: docs/images/smartsheet-screenshot.gif
+    :width: 1500
     :alt: Smartsheet screenshot
 
 Schedule all webinars with one bot command
 
 .. image:: docs/images/bot-screenshot.gif
+    :width: 854
     :alt: Webex bot screenshot
 
 Webinars are created
 
 .. image:: docs/images/smartsheet-done-screenshot.gif
+    :width: 1500
     :alt: Smartsheet done screenshot
 
 If need to change title, description, or reshedule, run the bot command again.
