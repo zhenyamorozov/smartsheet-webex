@@ -5,15 +5,24 @@ Smartsheet and Webex Automation
 *Automatically create webinars in Webex Webinar based on information in Smartsheet*
 
 
-Look how easy it is to use:
+It is easy to use:
 
-    [smartsheet screenshot]
+    Collaborate with your team on webinar planning. When ready for creation, check **Create=yes**
 
-    Collaborate with your team on webinar planning
-
-    [bot screenshot]
+    .. image:: docs/images/smartsheet-screenshot.gif
+        :alt: Smartsheet screenshot
 
     Schedule all webinars with one bot command
+
+    .. image:: docs/images/bot-screenshot.gif
+        :alt: Webex bot screenshot
+
+    Webinars are created
+
+    .. image:: docs/images/smartsheet-done-screenshot.gif
+        :alt: Smartsheet done screenshot
+
+    If need to change title, description, or reshedule, run the bot command again.
     
 
 Features
