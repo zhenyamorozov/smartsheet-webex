@@ -7,23 +7,20 @@ Smartsheet and Webex Automation
 
 It is easy to use:
 
-    Collaborate with your team on webinar planning. When ready for creation, check **Create=yes**
+Collaborate with your team on webinar planning. When ready for creation, check **Create=yes**
+.. image:: docs/images/smartsheet-screenshot.gif
+    :alt: Smartsheet screenshot
 
-    .. image:: docs/images/smartsheet-screenshot.gif
-        :alt: Smartsheet screenshot
+Schedule all webinars with one bot command
+.. image:: docs/images/bot-screenshot.gif
+    :alt: Webex bot screenshot
 
-    Schedule all webinars with one bot command
+Webinars are created
+.. image:: docs/images/smartsheet-done-screenshot.gif
+    :alt: Smartsheet done screenshot
 
-    .. image:: docs/images/bot-screenshot.gif
-        :alt: Webex bot screenshot
+If need to change title, description, or reshedule, run the bot command again.
 
-    Webinars are created
-
-    .. image:: docs/images/smartsheet-done-screenshot.gif
-        :alt: Smartsheet done screenshot
-
-    If need to change title, description, or reshedule, run the bot command again.
-    
 
 Features
 --------
