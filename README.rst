@@ -25,7 +25,7 @@ Webinars are created
     :width: 1500
     :alt: Smartsheet done screenshot
 
-If need to change title, description, or reshedule, run the bot command again, or set it to run on schedule.
+If need to change title, description, or reshedule, run the bot command again, or set it to run on a schedule.
 
 
 Features

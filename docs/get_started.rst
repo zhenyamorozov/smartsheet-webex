@@ -110,18 +110,35 @@ Setting Up and Launching
 
 Initialize the bot by @mentioning it and follow instructions on the cards. 
 
-[pic]
+.. image:: images/bot-hello.png
+    :width: 857
+    :alt: The bot responds to a message
 
 You can set a working smartsheet or create a new blank one. 
 
-[pic]
+.. image:: images/bot-smartsheet.png
+    :width: 857
+    :alt: The bot offers options to select an existing smartsheet or create a blank one.
 
 Authorize this automation to create webinars on behalf of a user. The authorization form will open in web browser.
 
-[pic]
+.. image:: images/bot-auth.png
+    :width: 857
+    :alt: The bot displays the current authorized account for webinars creation and offers a button to authorize another user.
 
 Populate your smartsheet with webinar data, change ``Create`` to ``yes`` and launch automation with Schedule now button.
 
-[pic]
+.. image:: images/smartsheet-screenshot.gif
+    :width: 1500
+    :alt: How to populate a smartsheet with webinar details and mark webinar for creation.
+
+.. image:: images/bot-schedule.png
+    :width: 857
+    :alt: The bot reports that the webinar creation has started.
 
 Your webinars are now scheduled.
+
+.. image:: docs/images/smartsheet-done-screenshot.gif
+    :width: 1500
+    :alt: Webinars are created and the smartseet is populated with the webinar IDs and details.
+

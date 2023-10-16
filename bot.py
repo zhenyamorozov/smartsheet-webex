@@ -125,7 +125,7 @@ def webhook():
 
         # retrieve the new attachment action details
         action = botApi.attachment_actions.get(webhookJson['data']['id'])
-        print("Action:\n", action)
+        # print("Action:\n", action)
 
         # print("actionInputs", actionInputs)
 

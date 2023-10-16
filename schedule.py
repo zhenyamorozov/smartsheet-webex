@@ -131,7 +131,7 @@ def initSmartsheet():
     """Initializes access to Smartsheet.
 
         Args:
-            sheetId(str): Smartsheet ID to initialize access to.
+            None
 
         Returns:
             A tuple of three items (ssApi, ssSheet, ssColumnMap)
