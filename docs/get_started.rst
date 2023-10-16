@@ -138,7 +138,7 @@ Populate your smartsheet with webinar data, change ``Create`` to ``yes`` and lau
 
 Your webinars are now scheduled.
 
-.. image:: docs/images/smartsheet-done-screenshot.gif
+.. image:: images/smartsheet-done-screenshot.gif
     :width: 1500
     :alt: Webinars are created and the smartseet is populated with the webinar IDs and details.
 
