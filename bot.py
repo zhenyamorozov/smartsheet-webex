@@ -133,7 +133,16 @@ def webhook():
 
         # "?" (help) action
         if action.type == "submit" and action.inputs['act'] == "help":
-            botApi.messages.create(text="Help text placeholder.", roomId=WEBEX_BOT_ROOM_ID)
+            botApi.messages.create(markdown="""
+Smartsheet and Webex Automation creates webinars in Webex Webinar based on information in Smartsheet.
+It is easy to use:
+1. Collaborate with your team on webinar planning in Smartsheet. When ready for creation, check **Create=yes**
+2. Click **Schedule Now** button to start webinar scheduling process
+3. Webinars are created
+
+Features and basic usage: https://github.com/zhenyamorozov/smartsheet-webex#smartsheet-and-webex-automation
+How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex/blob/master/docs/get_started.rst#get-started
+            """, roomId=WEBEX_BOT_ROOM_ID)
             # resend greeting card
             botApi.messages.create(text=greetingCard.fallbackText, roomId=WEBEX_BOT_ROOM_ID, attachments=[greetingCard])
             pass
