@@ -61,9 +61,9 @@ if not webAppPublicUrl:
 
 print("Launch Flask app")
 
-app = Flask(__name__)
+application = Flask(__name__)
 
-app.secret_key = FLASK_SECRET_KEY
+application.secret_key = FLASK_SECRET_KEY
 
 
 import auth
@@ -72,4 +72,4 @@ import bot
 
 
 if __name__ == "__main__":
-    app.run()
+    application.run()
