@@ -31,7 +31,7 @@ from exceptions import (
 )
 
 
-def loadParameters():
+def loadParameters(logger):
     """
         First step in the scheduling process.
 
@@ -145,6 +145,8 @@ def initSmartsheet():
             SmartsheetColumnMappingError: Smartsheet columns could not be properly mapped.
              Occurs when one or more of the required columns are missing from the provided smartsheet.
     """
+    global ssColumnMap
+
     try:
         sheetId = getSmartsheetId()
     except Exception as ex:
@@ -191,7 +193,7 @@ def initWebexIntegration():
     try:
         # get a fresh token
         webexToken = getWebexIntegrationToken(WEBEX_INTEGRATION_CLIENT_ID, WEBEX_INTEGRATION_CLIENT_SECRET)
-        print(webexToken) #TODO dev
+        # print(webexToken) #TODO dev
         # init the object
         webexApi = webexteamssdk.WebexTeamsAPI(webexToken)
         # check if API is functional by requesting `me`
@@ -288,7 +290,15 @@ def stringContactsToDict(contacts):
     return _res
 
 
-if __name__ == "__main__":
+def run():
+    """This is the main function that runs the scheduling process. Takes no arguments, returns nothing, just 
+    does the scheduling job. It generates a detailed and a brief log and sends them to the Webex space.
+
+        Args: None
+
+        Returns: None
+
+    """    
 
     #
     #   Initialize logging
@@ -327,7 +337,7 @@ if __name__ == "__main__":
     # Load env variables and check if all env variables are provided
     #
     logger.info("Loading parameters and checking if all required parameters are provided.")
-    loadParameters()
+    loadParameters(logger=logger)
     logger.info("Required parameters are successfully loaded.")
 
     #
@@ -675,3 +685,8 @@ if __name__ == "__main__":
 
     briefLogString.close()
     fullLogString.close()
+
+
+# Run the scheduling process if invoked in script mode
+if __name__ == "__main__":
+    run()

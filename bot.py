@@ -2,6 +2,8 @@ from __main__ import *
 
 from flask import request, url_for
 
+import schedule
+
 from param_store import (
     getSmartsheetId,
     saveSmartsheetId,
@@ -139,7 +141,8 @@ def webhook():
         # "Schedule now" action
         if action.type == "submit" and action.inputs['act'] == "schedule now":
             botApi.messages.create(text="The process to create/update webinars has started.", roomId=WEBEX_BOT_ROOM_ID)
-            # TODO
+            # invoke the webinar scheduling process
+            schedule.run()
 
         # "Set Smartsheet" action
         if action.type == "submit" and action.inputs['act'] == "set smartsheet":
