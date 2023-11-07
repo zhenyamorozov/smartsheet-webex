@@ -67,7 +67,7 @@ except Exception:
     print("Could not create a Webex bot API webhook.")
 
 
-@app.route("/webhook", methods=['GET', 'POST'])
+@application.route("/webhook", methods=['GET', 'POST'])
 def webhook():
     # print ("Webhook arrived.")
     # print(request)

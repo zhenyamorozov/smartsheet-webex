@@ -21,14 +21,14 @@ else:
     oa_callbackUri = webAppPublicUrl + "/callback"
 
 
-@app.route("/")
+@application.route("/")
 def root():
     print("/ requested")
     return "Hey, this is the bot running on Flask!"
 
 
 # OAuth Step 1
-@app.route("/auth")
+@application.route("/auth")
 def auth():
     """Step 1: User Authorization.
     Redirect the user/resource owner to the OAuth provider
@@ -57,7 +57,7 @@ def auth():
 
 
 # OAuth Step 3
-@app.route("/callback", methods=["GET"])
+@application.route("/callback", methods=["GET"])
 def callback():
     """ Step 3: Retrieving an access token.
     The user has been redirected back from the provider to your registered
