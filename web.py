@@ -77,16 +77,18 @@ def root():
     print("/ requested")
     return "Hey, this is Smartsheet-Webex running on Flask!"
 
+print("!dev:auth")
 import auth
 auth.init(webAppPublicUrl)
 app.add_url_rule('/auth', view_func=auth.auth)
 app.add_url_rule("/callback", view_func=auth.callback, methods=["GET"])
+print("!dev:/auth")
 
-
+print("!dev:bot")
 import bot
 bot.init(webAppPublicUrl)
 app.add_url_rule("/webhook", view_func=bot.webhook, methods=['GET', 'POST'])
-
+print("!dev:/bot")
 
 if __name__ == "__main__":
     app.run()
