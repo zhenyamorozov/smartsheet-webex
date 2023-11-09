@@ -68,25 +68,25 @@ if not webAppPublicUrl:
 
 print("Launch Flask app")
 
-application = Flask(__name__)
+app = Flask(__name__)
 
-application.secret_key = FLASK_SECRET_KEY
+app.secret_key = FLASK_SECRET_KEY
 
-@application.route("/")
+@app.route("/")
 def root():
     print("/ requested")
     return "Hey, this is Smartsheet-Webex running on Flask!"
 
 import auth
 auth.init(webAppPublicUrl)
-application.add_url_rule('/auth', view_func=auth.auth)
-application.add_url_rule("/callback", view_func=auth.callback, methods=["GET"])
+app.add_url_rule('/auth', view_func=auth.auth)
+app.add_url_rule("/callback", view_func=auth.callback, methods=["GET"])
 
 
 import bot
 bot.init(webAppPublicUrl)
-application.add_url_rule("/webhook", view_func=bot.webhook, methods=['GET', 'POST'])
+app.add_url_rule("/webhook", view_func=bot.webhook, methods=['GET', 'POST'])
 
 
 if __name__ == "__main__":
-    application.run()
+    app.run()
