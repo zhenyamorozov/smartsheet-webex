@@ -27,12 +27,14 @@ import smartsheet
 # initializes this module, called immediately after importing
 def init(webAppPublicUrl):
     global botApi
+    print("!dev:bot init")
 
     # initialize Webex Teams bot control object
     try:
         botApi = WebexTeamsAPI(os.getenv("WEBEX_BOT_TOKEN"))    # this will not raise an exception, even if bot token isn't correct, so,
         # need to make an API call to check API is functional
         assert botApi.people.me()
+        print("!dev:bot mew")
     except Exception:
         print("Could not initialize Webex bot API object.")
         raise SystemExit()
@@ -44,6 +46,7 @@ def init(webAppPublicUrl):
     for wh in botApi.webhooks.list():
         botApi.webhooks.delete(wh.id)
 
+    print("!dev:bot wh del")
     # create new webhooks
     try:
         botApi.webhooks.create(
@@ -65,6 +68,7 @@ def init(webAppPublicUrl):
         )
     except Exception:
         print("Could not create a Webex bot API webhook.")
+    print("!dev:bot wh cr")
 
 
 # @application.route("/webhook", methods=['GET', 'POST'])
