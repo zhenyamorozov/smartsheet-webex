@@ -1,5 +1,3 @@
-from __main__ import *
-
 from flask import request, url_for
 
 import schedule
@@ -26,48 +24,50 @@ from webexteamssdk.models.cards.options import *
 
 import smartsheet
 
-webhookTargetUrl = webAppPublicUrl + "/webhook"
+# initializes this module, called immediately after importing
+def init(webAppPublicUrl):
+    global botApi
 
-# initialize Webex Teams bot control object
-try:
-    botApi = WebexTeamsAPI(WEBEX_BOT_TOKEN)    # this will not raise an exception, even if bot token isn't correct, so,
-    # need to make an API call to check API is functional
-    assert botApi.people.me()
-except Exception:
-    print("Could not initialize Webex bot API object.")
-    raise SystemExit()
-
-
-# print("Creating webhooks in Webex")
-
-# delete ALL current webhooks - this bot is supposed to be used only with one instance of the app
-for wh in botApi.webhooks.list():
-    botApi.webhooks.delete(wh.id)
-
-# create new webhooks
-try:
-    botApi.webhooks.create(
-        name="Smartsheet-Webex bot - attachmentActions",
-        targetUrl=webhookTargetUrl,
-        resource="attachmentActions",
-        event="created",
-        filter="roomId=" + WEBEX_BOT_ROOM_ID
-    )
-except Exception:
-    print("Could not create a Webex bot API webhook.")
-try:
-    botApi.webhooks.create(
-        name="Smartsheet-Webex bot - messages",
-        targetUrl=webhookTargetUrl,
-        resource="messages",
-        event="created",
-        filter="roomId=" + WEBEX_BOT_ROOM_ID
-    )
-except Exception:
-    print("Could not create a Webex bot API webhook.")
+    # initialize Webex Teams bot control object
+    try:
+        botApi = WebexTeamsAPI(os.getenv("WEBEX_BOT_TOKEN"))    # this will not raise an exception, even if bot token isn't correct, so,
+        # need to make an API call to check API is functional
+        assert botApi.people.me()
+    except Exception:
+        print("Could not initialize Webex bot API object.")
+        raise SystemExit()
 
 
-@application.route("/webhook", methods=['GET', 'POST'])
+    webhookTargetUrl = webAppPublicUrl + "/webhook"
+
+    # delete ALL current webhooks - this bot is supposed to be used only with one instance of the app
+    for wh in botApi.webhooks.list():
+        botApi.webhooks.delete(wh.id)
+
+    # create new webhooks
+    try:
+        botApi.webhooks.create(
+            name="Smartsheet-Webex bot - attachmentActions",
+            targetUrl=webhookTargetUrl,
+            resource="attachmentActions",
+            event="created",
+            filter="roomId=" + os.getenv("WEBEX_BOT_ROOM_ID")
+        )
+    except Exception:
+        print("Could not create a Webex bot API webhook.")
+    try:
+        botApi.webhooks.create(
+            name="Smartsheet-Webex bot - messages",
+            targetUrl=webhookTargetUrl,
+            resource="messages",
+            event="created",
+            filter="roomId=" + os.getenv("WEBEX_BOT_ROOM_ID")
+        )
+    except Exception:
+        print("Could not create a Webex bot API webhook.")
+
+
+# @application.route("/webhook", methods=['GET', 'POST'])
 def webhook():
     # print ("Webhook arrived.")
     # print(request)
@@ -78,7 +78,7 @@ def webhook():
     try:
         assert webhookJson['resource'] in ("messages", "attachmentActions")
         assert webhookJson['event'] == "created"
-        assert webhookJson['data']['roomId'] == WEBEX_BOT_ROOM_ID
+        assert webhookJson['data']['roomId'] == os.getenv("WEBEX_BOT_ROOM_ID")
     except Exception:
         print("The arrived webhook is malformed or does not indicate an actionable event in the log and control room")
         return "Webhook processed."
@@ -120,7 +120,7 @@ def webhook():
         # print(message)
 
         # respond with the greeting card to any message
-        botApi.messages.create(text=greetingCard.fallbackText, roomId=WEBEX_BOT_ROOM_ID, attachments=[greetingCard])
+        botApi.messages.create(text=greetingCard.fallbackText, roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[greetingCard])
 
     # received a card action
     elif webhookJson['resource'] == "attachmentActions":
@@ -144,12 +144,12 @@ Features and basic usage: https://github.com/zhenyamorozov/smartsheet-webex#smar
 How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex/blob/master/docs/get_started.rst#get-started
             """, roomId=WEBEX_BOT_ROOM_ID)
             # resend greeting card
-            botApi.messages.create(text=greetingCard.fallbackText, roomId=WEBEX_BOT_ROOM_ID, attachments=[greetingCard])
+            botApi.messages.create(text=greetingCard.fallbackText, roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[greetingCard])
             pass
 
         # "Schedule now" action
         if action.type == "submit" and action.inputs['act'] == "schedule now":
-            botApi.messages.create(text="The process to create/update webinars has started.", roomId=WEBEX_BOT_ROOM_ID)
+            botApi.messages.create(text="The process to create/update webinars has started.", roomId=os.getenv("WEBEX_BOT_ROOM_ID"))
             # invoke the webinar scheduling process
             schedule.run()
 
@@ -215,7 +215,7 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
             )
 
             # print(card.to_json())
-            botApi.messages.create(text="Could not send the action card", roomId=WEBEX_BOT_ROOM_ID, attachments=[card])
+            botApi.messages.create(text="Could not send the action card", roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[card])
             pass
 
         # "Save Smartsheet ID" action
@@ -225,7 +225,7 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
             if 'newSmartsheetId' not in action.inputs or not action.inputs['newSmartsheetId'].strip():
                 botApi.messages.create(
                     text="Smartsheet ID cannot be empty.",
-                    roomId=WEBEX_BOT_ROOM_ID
+                    roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                 )
             else:
                 try:
@@ -259,16 +259,16 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
                             roomId=WEBEX_BOT_ROOM_ID
                         )
                         # resend greeting card
-                        botApi.messages.create(text=greetingCard.fallbackText, roomId=WEBEX_BOT_ROOM_ID, attachments=[greetingCard])
+                        botApi.messages.create(text=greetingCard.fallbackText, roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[greetingCard])
                     except Exception:
                         botApi.messages.create(
                             text="Could not save new Smartsheet ID to Parameter Store. Check local AWS configuration.",
-                            roomId=WEBEX_BOT_ROOM_ID
+                            roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                         )
                 except Exception:
                     botApi.messages.create(
                         text="That Sheet ID did not work. Try again.",
-                        roomId=WEBEX_BOT_ROOM_ID
+                        roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                     )
 
         # "Create Smartsheet Template" action
@@ -368,13 +368,13 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
 
                 botApi.messages.create(
                     text="Here is your newly created Smartsheet template. Don't forget to set it as the current working smartsheet.\n{}".format(newSheet.permalink),
-                    roomId=WEBEX_BOT_ROOM_ID
+                    roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                 )
 
             except Exception:
                 botApi.messages.create(
                     text="Couldn't create a Smartsheet template.",
-                    roomId=WEBEX_BOT_ROOM_ID
+                    roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                 )
 
         # "Authorize Webex" action
@@ -382,8 +382,8 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
             try:
                 # get a fresh Webex Integration access token
                 access_token = getWebexIntegrationToken(
-                    webex_integration_client_id=WEBEX_INTEGRATION_CLIENT_ID,
-                    webex_integration_client_secret=WEBEX_INTEGRATION_CLIENT_SECRET
+                    webex_integration_client_id=os.getenv("WEBEX_INTEGRATION_CLIENT_ID"),
+                    webex_integration_client_secret=os.getenv("WEBEX_INTEGRATION_CLIENT_SECRET")
                 )
 
                 # get information about the current authorized Webex user
@@ -457,6 +457,6 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
                 ]
             )    # /AdaptiveCard
 
-            botApi.messages.create(text="Could not send the action card", roomId=WEBEX_BOT_ROOM_ID, attachments=[card])
+            botApi.messages.create(text="Could not send the action card", roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[card])
 
     return "webhook accepted"

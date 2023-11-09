@@ -1,5 +1,3 @@
-from __main__ import *
-
 from flask import redirect, request, session
 
 from param_store import *
@@ -9,34 +7,23 @@ from uuid import uuid4
 import urllib.parse
 import requests
 
-#dev
-print("globals: ", globals())
-print("locals: ", locals())
-print("dir: ", dir())
-print(webAppPublicUrl)
 
-#/dev
-
-
-# OAuth static vars
-oa_authorizationURI = "https://webexapis.com/v1/authorize?"
-oa_tokenURI = "https://webexapis.com/v1/access_token"
-if os.getenv("FLASK_ENV") == "development":
-    # dev
-    oa_callbackUri = "http://localhost:5000" + "/callback"
-else:
-    # prod
-    oa_callbackUri = webAppPublicUrl + "/callback"
-
-
-@application.route("/")
-def root():
-    print("/ requested")
-    return "Hey, this is the bot running on Flask!"
+# initializes this module, called immediately after importing
+def init(webAppPublicUrl):
+    global oa_callbackUri
+    # OAuth static vars
+    oa_authorizationURI = "https://webexapis.com/v1/authorize?"
+    oa_tokenURI = "https://webexapis.com/v1/access_token"
+    if os.getenv("FLASK_ENV") == "development":
+        # dev
+        oa_callbackUri = "http://localhost:5000" + "/callback"
+    else:
+        # prod
+        oa_callbackUri = webAppPublicUrl + "/callback"
 
 
 # OAuth Step 1
-@application.route("/auth")
+# @application.route("/auth")
 def auth():
     """Step 1: User Authorization.
     Redirect the user/resource owner to the OAuth provider
@@ -49,7 +36,7 @@ def auth():
 
     oa_params = {
         'response_type': "code",
-        'client_id': WEBEX_INTEGRATION_CLIENT_ID,
+        'client_id': os.getenv("WEBEX_INTEGRATION_CLIENT_ID"),
         'redirect_uri': oa_callbackUri,
         'scope': "spark:people_read meeting:schedules_read meeting:schedules_write meeting:preferences_read meeting:recordings_read meeting:participants_read",
         'state': state
@@ -65,7 +52,7 @@ def auth():
 
 
 # OAuth Step 3
-@application.route("/callback", methods=["GET"])
+# @application.route("/callback", methods=["GET"])
 def callback():
     """ Step 3: Retrieving an access token.
     The user has been redirected back from the provider to your registered
@@ -93,8 +80,8 @@ def callback():
         'grant_type': "authorization_code",
         'redirect_uri': oa_callbackUri,
         'code': oa_code,
-        'client_id': WEBEX_INTEGRATION_CLIENT_ID,
-        'client_secret': WEBEX_INTEGRATION_CLIENT_SECRET
+        'client_id': os.getenv("WEBEX_INTEGRATION_CLIENT_ID"),
+        'client_secret': os.getenv("WEBEX_INTEGRATION_CLIENT_SECRET")
     }
 
     oa_resp = requests.post(oa_tokenURI, data=oa_data)

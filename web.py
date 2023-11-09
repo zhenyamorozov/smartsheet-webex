@@ -18,23 +18,19 @@ FLASK_SECRET_KEY = os.getenv('FLASK_SECRET_KEY', "dev")
 if FLASK_SECRET_KEY == "dev":
     print("Flask secret key is not set in env. Set to any random string with FLASK_SECRET_KEY environment variable.")
 
-# load env vars for Webex integration
-WEBEX_INTEGRATION_CLIENT_ID = os.getenv('WEBEX_INTEGRATION_CLIENT_ID')
-if not WEBEX_INTEGRATION_CLIENT_ID:
+# verify mandatory env vars for Webex integration
+if not os.getenv('WEBEX_INTEGRATION_CLIENT_ID'):
     print("Webex Integration Client ID is missing. Provide with WEBEX_INTEGRATION_CLIENT_ID environment variable.")
     raise SystemExit()
-WEBEX_INTEGRATION_CLIENT_SECRET = os.getenv('WEBEX_INTEGRATION_CLIENT_SECRET')
-if not WEBEX_INTEGRATION_CLIENT_SECRET:
+if not os.getenv('WEBEX_INTEGRATION_CLIENT_SECRET'):
     print("Webex Integration Client Secret is missing. Provide with WEBEX_INTEGRATION_CLIENT_SECRET environment variable.")
     raise SystemExit()
 
-# load env vars for Webex bot
-WEBEX_BOT_TOKEN = os.getenv('WEBEX_BOT_TOKEN')
-if not WEBEX_BOT_TOKEN:
+# verify mandatory env vars for Webex bot
+if not os.getenv('WEBEX_BOT_TOKEN'):
     print("Webex bot access token is missing. Provide with WEBEX_BOT_TOKEN environment variable.")
     raise SystemExit()
-WEBEX_BOT_ROOM_ID = os.getenv('WEBEX_BOT_ROOM_ID')
-if not WEBEX_BOT_ROOM_ID:
+if not os.getenv('WEBEX_BOT_ROOM_ID'):
     print("Webex bot room ID is missing. Provide with WEBEX_BOT_ROOM_ID environment variable.")
     raise SystemExit()
 
@@ -42,7 +38,8 @@ if not WEBEX_BOT_ROOM_ID:
 webAppPublicUrl = ""
 # try to get the ngrok URL (dev)
 try:
-    r = requests.get("http://localhost:4040/api/tunnels")
+    r = requests.get("http://localhost:4040/api/tunnels",
+        timeout=2)
     webAppPublicUrl = r.json()['tunnels'][0]['public_url']
     print("Obtained public URL from ngrok: " + webAppPublicUrl)
 except Exception:
@@ -52,10 +49,12 @@ except Exception:
 try:
     # AWS IMDSv2 requires authenticatiom
     r = requests.put("http://169.254.169.254/latest/api/token", 
-        headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"})
+        headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"},
+        timeout=2)
     imdsToken = r.text
     r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname", 
-        headers={"X-aws-ec2-metadata-token": imdsToken})
+        headers={"X-aws-ec2-metadata-token": imdsToken},
+        timeout=2)
     if r.text:
         webAppPublicUrl = "https://" + r.text
         print("Obtained public URL from AWS NMDS: " + webAppPublicUrl)
@@ -73,10 +72,20 @@ application = Flask(__name__)
 
 application.secret_key = FLASK_SECRET_KEY
 
+@application.route("/")
+def root():
+    print("/ requested")
+    return "Hey, this is Smartsheet-Webex running on Flask!"
 
 import auth
+auth.init(webAppPublicUrl)
+application.add_url_rule('/auth', view_func=auth.auth)
+application.add_url_rule("/callback", view_func=auth.callback, methods=["GET"])
+
 
 import bot
+bot.init(webAppPublicUrl)
+application.add_url_rule("/webhook", view_func=bot.webhook, methods=['GET', 'POST'])
 
 
 if __name__ == "__main__":
