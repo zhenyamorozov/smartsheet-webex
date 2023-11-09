@@ -41,8 +41,11 @@ def init(webAppPublicUrl):
     webhookTargetUrl = webAppPublicUrl + "/webhook"
 
     # delete ALL current webhooks - this bot is supposed to be used only with one instance of the app
-    for wh in botApi.webhooks.list():
-        botApi.webhooks.delete(wh.id)
+    try:
+        for wh in botApi.webhooks.list():
+            botApi.webhooks.delete(wh.id)
+    except Exception:
+        print("Could not clean up Webex bot API webhooks.")
 
     # create new webhooks
     try:
