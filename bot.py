@@ -142,7 +142,7 @@ It is easy to use:
 
 Features and basic usage: https://github.com/zhenyamorozov/smartsheet-webex#smartsheet-and-webex-automation
 How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex/blob/master/docs/get_started.rst#get-started
-            """, roomId=WEBEX_BOT_ROOM_ID)
+            """, roomId=os.getenv("WEBEX_BOT_ROOM_ID"))
             # resend greeting card
             botApi.messages.create(text=greetingCard.fallbackText, roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[greetingCard])
             pass
@@ -256,7 +256,7 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
                         # send cpnfirmation message
                         botApi.messages.create(
                             markdown="New Smartsheet is set:\n``{}``".format(newSheetName),
-                            roomId=WEBEX_BOT_ROOM_ID
+                            roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                         )
                         # resend greeting card
                         botApi.messages.create(text=greetingCard.fallbackText, roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[greetingCard])
