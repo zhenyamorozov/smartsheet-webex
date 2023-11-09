@@ -30,7 +30,7 @@ def init(webAppPublicUrl):
 
     # initialize Webex Teams bot control object
     try:
-        botApi = WebexTeamsAPI(os.getenv("WEBEX_BOT_TOKEN"))    # this will not raise an exception, even if bot token isn't correct, so,
+        botApi = WebexTeamsAPI(os.getenv("WEBEX_BOT_TOKEN"), wait_on_rate_limit=False)    # this will not raise an exception, even if bot token isn't correct, so,
         # need to make an API call to check API is functional
         assert botApi.people.me()
     except Exception:
@@ -46,6 +46,7 @@ def init(webAppPublicUrl):
             botApi.webhooks.delete(wh.id)
     except Exception:
         print("Could not clean up Webex bot API webhooks.")
+        raise SystemExit()
 
     # create new webhooks
     try:
