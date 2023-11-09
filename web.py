@@ -44,6 +44,7 @@ webAppPublicUrl = ""
 try:
     r = requests.get("http://localhost:4040/api/tunnels")
     webAppPublicUrl = r.json()['tunnels'][0]['public_url']
+    print("Obtained public URL from ngrok: " + webAppPublicUrl)
 except Exception:
     # do nothing
     pass
@@ -55,7 +56,9 @@ try:
     imdsToken = r.text
     r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname", 
         headers={"X-aws-ec2-metadata-token": imdsToken})
-    webAppPublicUrl = "https://" + r.text
+    if r.text:
+        webAppPublicUrl = "https://" + r.text
+        print("Obtained public URL from AWS NMDS: " + webAppPublicUrl)
 except Exception:
     # do nothing
     pass
