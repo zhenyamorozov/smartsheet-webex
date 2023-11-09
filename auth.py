@@ -9,6 +9,14 @@ from uuid import uuid4
 import urllib.parse
 import requests
 
+#dev
+print("globals: ", globals())
+print("locals: ", locals())
+print("dir: ", dir())
+print(webAppPublicUrl)
+
+#/dev
+
 
 # OAuth static vars
 oa_authorizationURI = "https://webexapis.com/v1/authorize?"
