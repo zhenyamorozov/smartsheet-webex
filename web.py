@@ -49,8 +49,13 @@ except Exception:
     pass
 # try to get the AWS URL (prod)
 try:
-    r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname")
-    webAppPublicUrl = r.text
+    # AWS IMDSv2 requires authenticatiom
+    r = requests.put("http://169.254.169.254/latest/api/token", 
+        headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"})
+    imdsToken = r.text
+    r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname", 
+        headers={"X-aws-ec2-metadata-token": imdsToken})
+    webAppPublicUrl = "https://" + r.text
 except Exception:
     # do nothing
     pass
