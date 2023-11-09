@@ -56,7 +56,7 @@ try:
         headers={"X-aws-ec2-metadata-token": imdsToken},
         timeout=2)
     if r.text:
-        webAppPublicUrl = "https://" + r.text
+        webAppPublicUrl = "http://" + r.text
         print("Obtained public URL from AWS NMDS: " + webAppPublicUrl)
 except Exception:
     # do nothing
