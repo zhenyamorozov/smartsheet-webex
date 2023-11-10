@@ -100,7 +100,6 @@ def loadParameters(logger):
     if os.getenv("SMARTSHEET_PARAMS"):
         logger.info("Loading optional Smartsheet parameters from env.")
         try:
-            print(os.getenv('SMARTSHEET_PARAMS')) # TODO dev
             columns = json.loads(os.getenv('SMARTSHEET_PARAMS'))['columns']
             for i in columns:
                 SMARTSHEET_PARAMS['columns'][i] = columns[i]
