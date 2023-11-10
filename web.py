@@ -62,8 +62,8 @@ except Exception:
     # do nothing
     pass
 # try to get the AWS Elastic Beanstalk environment URL from env
-if os.getenv["WEBAPP_PUBLIC_DOMAIN_NAME"]:
-    webAppPublicUrl = "http://" + os.getenv["WEBAPP_PUBLIC_DOMAIN_NAME"]
+if os.getenv("WEBAPP_PUBLIC_DOMAIN_NAME"):
+    webAppPublicUrl = "http://" + os.getenv("WEBAPP_PUBLIC_DOMAIN_NAME")
     print("Obtained public URL from Elastic Beanstalk environment: " + webAppPublicUrl)
 
 if not webAppPublicUrl:
