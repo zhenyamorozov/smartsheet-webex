@@ -269,7 +269,6 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
                             text="Could not save new Smartsheet ID to Parameter Store. Check local AWS configuration.",
                             roomId=os.getenv("WEBEX_BOT_ROOM_ID")
                         )
-                        print(ex)
                 except Exception:
                     botApi.messages.create(
                         text="That Sheet ID did not work. Try again.",

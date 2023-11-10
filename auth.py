@@ -7,13 +7,14 @@ from uuid import uuid4
 import urllib.parse
 import requests
 
+# OAuth static vars
+oa_authorizationURI = "https://webexapis.com/v1/authorize?"
+oa_tokenURI = "https://webexapis.com/v1/access_token"
+
 
 # initializes this module, called immediately after importing
 def init(webAppPublicUrl):
     global oa_callbackUri
-    # OAuth static vars
-    oa_authorizationURI = "https://webexapis.com/v1/authorize?"
-    oa_tokenURI = "https://webexapis.com/v1/access_token"
     if os.getenv("FLASK_ENV") == "development":
         # dev
         oa_callbackUri = "http://localhost:5000" + "/callback"
