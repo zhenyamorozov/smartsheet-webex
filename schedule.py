@@ -690,7 +690,6 @@ def run():
     logger.removeHandler(fullLogHandler)
     logger.removeHandler(consoleLogHandler)
     logging.shutdown()
-    pass
 
 
 # Run the scheduling process if launched as a script
