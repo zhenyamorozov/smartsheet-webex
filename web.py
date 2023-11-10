@@ -79,7 +79,7 @@ app.secret_key = FLASK_SECRET_KEY
 @app.route("/")
 def root():
     print("/ requested")
-    return "Hey, this is Smartsheet-Webex running on Flask!"
+    return "Hey, this is Smartsheet-Webex running on Flask!<br>This application is open source: <a href=\"https://github.com/zhenyamorozov/smartsheet-webex\">github</a>"
 
 import auth
 auth.init(webAppPublicUrl)
