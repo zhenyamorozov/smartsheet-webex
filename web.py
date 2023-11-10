@@ -45,14 +45,14 @@ try:
 except Exception:
     # do nothing
     pass
-# try to get the AWS URL (prod)
+# try to get the AWS EC2 instance URL (prod)
 try:
     # AWS IMDSv2 requires authenticatiom
-    r = requests.put("http://169.254.169.254/latest/api/token", 
+    r = requests.put("http://169.254.169.254/latest/api/token",
         headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"},
         timeout=2)
     imdsToken = r.text
-    r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname", 
+    r = requests.get("http://169.254.169.254/latest/meta-data/public-hostname",
         headers={"X-aws-ec2-metadata-token": imdsToken},
         timeout=2)
     if r.text:
@@ -61,6 +61,10 @@ try:
 except Exception:
     # do nothing
     pass
+# try to get the AWS Elastic Beanstalk environment URL from env
+if os.getenv["WEBAPP_PUBLIC_DOMAIN_NAME"]:
+    webAppPublicUrl = "http://" + os.getenv["WEBAPP_PUBLIC_DOMAIN_NAME"]
+    print("Obtained public URL from Elastic Beanstalk environment: " + webAppPublicUrl)
 
 if not webAppPublicUrl:
     print("Could not get the web app public URL")

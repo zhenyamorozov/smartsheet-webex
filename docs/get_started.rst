@@ -49,7 +49,7 @@ To create a new Webex bot identity:
 
 
 Setting Environment Variables
-=====================
+=============================
 You must set a few environment variables.
 
 Required Variables
@@ -97,6 +97,13 @@ Optional Variables
         "password": "passwordforattendees",
         "reminderTime": 30
     }
+
+Optional Deployment Variables
+-----------------------------
+If this application is deployed to AWS EC2 instance directly, there is no need to do anything. It will obtain the public domain name from AWS NMDS service.
+But if it is deployed with AWS Elastic Beanstalk, the EB environment public domain must be specified in environment.
+
+* ``WEBAPP_PUBLIC_DOMAIN_NAME`` - web application public domain name
 
 
 Starting the application
