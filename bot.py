@@ -153,7 +153,12 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
 
         # "Schedule now" action
         if action.type == "submit" and action.inputs['act'] == "schedule now":
-            botApi.messages.create(text="The process to create/update webinars has started.", roomId=os.getenv("WEBEX_BOT_ROOM_ID"))
+            try:
+                actor = botApi.people.get(personId=webhookJson['actorId'])
+                botApi.messages.create(markdown="Webinar scheduling requested by <@personId:{}|{}>. Will start the process. It will take a minute.".format(actor.id, actor.firstName), roomId=os.getenv("WEBEX_BOT_ROOM_ID"))
+            except Exception:
+                botApi.messages.create(markdown="Webinar scheduling requested. Will start the process. It will take a minute.", roomId=os.getenv("WEBEX_BOT_ROOM_ID"))
+            
             # invoke the webinar scheduling process
             schedule.run()
 

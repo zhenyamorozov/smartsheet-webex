@@ -338,7 +338,7 @@ def run():
     #
     logger.info("Loading parameters and checking if all required parameters are provided.")
     loadParameters(logger=logger)
-    logger.info("Required parameters are successfully loaded.")
+    logger.info("Required parameters are successfully loaded.\n")
 
     #
     # Initialize access to Smartsheet
@@ -683,10 +683,16 @@ def run():
     except Exception as ex:
         logger.error("Failed to post log into Webex bot room. " + str(ex))
 
+    # close logging
     briefLogString.close()
     fullLogString.close()
+    logger.removeHandler(briefLogHandler)
+    logger.removeHandler(fullLogHandler)
+    logger.removeHandler(consoleLogHandler)
+    logging.shutdown()
+    pass
 
 
-# Run the scheduling process if invoked in script mode
+# Run the scheduling process if launched as a script
 if __name__ == "__main__":
     run()
