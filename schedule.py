@@ -457,12 +457,6 @@ def run():
                 logger.error("Failed to process \"{}\". The webinar property is not valid: {}".format(event['title'], ex))
                 continue
 
-            # dev
-            # import random
-            # _rnd = "".join(random.choice([chr(c) for c in range(ord('A'), ord('Z')+1)]) for l in range(3))
-            # event["title"] = _rnd+" "+event["title"]
-            # /dev
-
             if not event['id']:
                 # create event
                 try:
