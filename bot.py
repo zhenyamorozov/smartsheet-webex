@@ -124,7 +124,11 @@ def webhook():
         # print(message)
 
         # respond with the greeting card to any message
-        botApi.messages.create(text=greetingCard.fallbackText, roomId=os.getenv("WEBEX_BOT_ROOM_ID"), attachments=[greetingCard])
+        botApi.messages.create(
+            text=greetingCard.fallbackText, 
+            roomId=os.getenv("WEBEX_BOT_ROOM_ID"), 
+            attachments=[greetingCard]
+        )
 
     # received a card action
     elif webhookJson['resource'] == "attachmentActions":
@@ -161,6 +165,13 @@ How to set up and get started: https://github.com/zhenyamorozov/smartsheet-webex
             
             # invoke the webinar scheduling process
             schedule.run()
+
+            # send reduced greeting card - only action buttons
+            botApi.messages.create(
+                text=greetingCard.fallbackText, 
+                roomId=os.getenv("WEBEX_BOT_ROOM_ID"), 
+                attachments=[AdaptiveCard(fallbackText=greetingCard.fallbackText, actions=greetingCard.actions)]
+            )
 
         # "Set Smartsheet" action
         if action.type == "submit" and action.inputs['act'] == "set smartsheet":
