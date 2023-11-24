@@ -5,11 +5,11 @@ Can be launched as a standalone script or invoked by the control bot command.
 
 # common imports
 import os
-from dotenv import load_dotenv
 import logging
 import io
 import json
 from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
 from email.utils import getaddresses
 import tempfile
 
@@ -331,6 +331,7 @@ def run():
     consoleLogHandler.setLevel(logging.DEBUG)
     logger.addHandler(consoleLogHandler)
 
+    startTime = datetime.now()
     logger.warning("Starting...")
 
     #
@@ -652,7 +653,7 @@ def run():
 
     # /for
     
-    logger.warning("Done.")
+    logger.warning(f"Done in {datetime.now()-startTime}.")
 
     #
     # Process logs and close logging
