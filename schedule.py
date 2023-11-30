@@ -390,10 +390,11 @@ def run():
     logger.info("Successfully initialized access to Webex bot.")
 
 
-    #
     # Set default time zone
-    #
     os.environ['TZ'] = 'UTC'
+
+    # Will calculate total amount of registrants
+    totalRegistrantCount = 0
 
 
     #
@@ -569,6 +570,7 @@ def run():
                     pass
 
                     registrantCount = sum(1 for _ in webexApi.meeting_invitees.list(w.id))
+                    totalRegistrantCount += registrantCount
 
                     newCells = []
                     if 'registrantCount' in ssColumnMap:
@@ -653,7 +655,7 @@ def run():
 
     # /for
     
-    logger.warning(f"Done in {datetime.now()-startTime}.")
+    logger.warning(f"Done in {datetime.now()-startTime}. Total registrants: {totalRegistrantCount}.")
 
     #
     # Process logs and close logging
