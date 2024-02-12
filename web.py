@@ -57,7 +57,7 @@ try:
         timeout=2)
     if r.text:
         webAppPublicUrl = "http://" + r.text
-        print("Obtained public URL from AWS NMDS: " + webAppPublicUrl)
+        print("Obtained public URL from AWS IMDS: " + webAppPublicUrl)
 except Exception:
     # do nothing
     pass
