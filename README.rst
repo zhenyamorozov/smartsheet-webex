@@ -1,6 +1,9 @@
 ================================
 Smartsheet and Webex Automation
 ================================
+.. image:: https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg
+    :alt: published
+    :target: https://developer.cisco.com/codeexchange/github/repo/zhenyamorozov/smartsheet-webex
 
 *Automatically create webinars in Webex Webinar based on information in Smartsheet*
 
