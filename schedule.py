@@ -498,14 +498,15 @@ def run():
                         }))
                     else:
                         logger.error("No column in Smartsheet to save Webinar ID.")    # critical for app logic
+
                     if 'attendeeUrl' in ssColumnMap:
                         newCells.append(ssApi.models.Cell({
                             'column_id': ssColumnMap['attendeeUrl'],
-                            'value': "Manually copy the Attendee URL from Webex" #w.webLink     TODO: implement Attendee URL once it becomes available in API
+                            'value': w.registerLink
                         }))
                     else:
-                        logger.info("No column in Smartsheet to save Attendee URL.")
-                    # TODO to be added when API supports - Registration URL
+                        logger.info("No column in Smartsheet to save Attendee Registration URL.")
+
                     if 'hostKey' in ssColumnMap:
                         newCells.append(ssApi.models.Cell({
                             'column_id': ssColumnMap['hostKey'],
